@@ -1,20 +1,38 @@
+import cors from 'cors'
 import { PrismaClient } from '@prisma/client'
 import express from 'express'
 
 const prisma = new PrismaClient()
 const app = express()
 
+app.use(cors({
+  origin: 'http://localhost:8081',
+  credentials: true
+}))
+
 app.use(express.json())
 
 app.listen(3000, () =>
-    console.log('REST API server ready at: http://localhost:3000'),
+  console.log('REST API server ready at: http://localhost:3000'),
 )
 
 app.get('/users', async (req, res) => {
-    const users = await prisma.user.findMany()
-    res.json(users)
-  })
+  const users = await prisma.user.findMany()
+  res.json(users)
+})
 
+app.post('/createUsers', async (req, res) => {
+  const { name, email, password } = req.body
+  const user = await prisma.user.create({
+    data: {
+      name,
+      email,
+      password,
+      hasGarden: false
+    },
+  })
+  res.json(user)
+})
 // async function main() {
 //   // ... your Prisma Client queries will go here
 //   const newUser = await prisma.user.create({
