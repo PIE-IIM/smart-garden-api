@@ -21,14 +21,13 @@ app.get('/users', async (req, res) => {
   res.json(users)
 })
 
-app.post('/createUsers', async (req, res) => {
+app.post('/createUser', async (req, res) => {
   const { name, email, password } = req.body
   const user = await prisma.user.create({
     data: {
       name,
       email,
-      password,
-      hasGarden: false
+      password
     },
   })
   res.json(user)
