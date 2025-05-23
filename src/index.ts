@@ -32,7 +32,8 @@ app.post('/createUser', async (req, res) => {
       password: hashedPassword
     },
   })
-  res.json(user)
+  console.log(user)
+  res.json({name: user.name, email: user.email})
 })
 // async function main() {
 //   // ... your Prisma Client queries will go here
