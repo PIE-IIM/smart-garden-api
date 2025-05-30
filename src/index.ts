@@ -2,12 +2,13 @@ import cors from 'cors';
 import express from 'express';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
-import { signup, login } from './controllers/auth.controller';
+import bcrypt from 'bcryptjs';
+import { UserController } from './controllers/user.controller';
 
 dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
-
+const userController = new UserController(prisma)
 
 app.use(cors({
   origin: 'http://localhost:8081',
@@ -15,9 +16,10 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Routes d'authentification
-app.post('/api/signup', signup);
-app.post('/api/login', login);
+//Create user
+app.post('/api/signup', async (req, res) => {
+  userController.createUser(req, res);
+})
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
