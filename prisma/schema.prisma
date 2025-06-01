@@ -14,19 +14,14 @@ model User {
   name  String?
   createdAt DateTime @default(now())
 
-  token Token?
+  Token Token?
 }
 
 model Token {
-  id Int       @id @default(autoincrement())
-  access_token String @unique
-  refresh_token String @unique
+  id String @id
+  createdAt DateTime @default(now())
+  expireAt DateTime
 
-  user   User @relation(fields: [userId], references: [id])
   userId String @unique
-
-}
-
-model BlackListToken {
-  id Int  @id @default(autoincrement())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

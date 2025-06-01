@@ -3,11 +3,13 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import { UserController } from './controllers/user.controller';
+import { Utils } from './utils';
 
 dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
-const userController = new UserController(prisma)
+const utils = new Utils();
+const userController = new UserController(prisma, utils);
 
 app.use(cors({
   origin: 'http://localhost:8081',
