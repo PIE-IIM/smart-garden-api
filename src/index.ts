@@ -16,7 +16,6 @@ app.use(cors({
 }));
 app.use(express.json());
 
-//Create user
 app.post('/api/signup', async (req, res) => {
   await userController.createUser(req, res);
 })
