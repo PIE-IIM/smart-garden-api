@@ -18,8 +18,13 @@ app.use(express.json());
 
 //Create user
 app.post('/api/signup', async (req, res) => {
-  userController.createUser(req, res);
+  await userController.createUser(req, res);
 })
+
+app.post('/api/login', async (req, res) => {
+  await userController.login(req, res);
+})
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
