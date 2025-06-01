@@ -2,7 +2,6 @@ import cors from 'cors';
 import express from 'express';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 import { UserController } from './controllers/user.controller';
 
 dotenv.config();
