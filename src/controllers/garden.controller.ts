@@ -1,16 +1,12 @@
-import { Prisma, PrismaClient, Vegetable } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import { Request, Response } from "express";
 import { Utils } from "../utils";
-import { vegetables } from "../../constants/data";
+import { Vegetable, vegetables } from "../../constants/data";
 
 export class GardenController {
   constructor(
-    private prisma: PrismaClient<
-      Prisma.PrismaClientOptions,
-      never,
-      DefaultArgs
-    >,
+    private prisma: PrismaClient,
     private utils: Utils
   ) {}
 

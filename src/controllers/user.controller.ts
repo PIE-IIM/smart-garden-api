@@ -7,11 +7,7 @@ import { Utils } from "../utils";
 
 export class UserController {
   constructor(
-    private prisma: PrismaClient<
-      Prisma.PrismaClientOptions,
-      never,
-      DefaultArgs
-    >,
+    private prisma: PrismaClient,
     private utils: Utils
   ) {}
 
