@@ -25,3 +25,15 @@ model Token {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model Vegetable {
+  id String @id @default(uuid())
+  name String
+  description String
+  specifications String[]
+  sowing String
+  plantation String
+  harvest String
+  affinity String[]
+  bad_neighbors String[]
+}
