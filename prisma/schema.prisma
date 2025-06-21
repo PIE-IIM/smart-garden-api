@@ -31,9 +31,9 @@ model Vegetable {
   name String
   description String
   specifications String[]
-  sowing String
-  plantation String
-  harvest String
+  sowing String[]
+  plantation String[]
+  harvest String[]
   affinity String[]
   bad_neighbors String[]
 }
