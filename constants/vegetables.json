@@ -1,15 +1,4 @@
-export type Vegetable = {
-    name: string;
-    description: string;
-    caracteristiques: string[];
-    semis: string[];
-    plantation: string[];
-    recolte: string[];
-    affinites: string[];
-    mauvais_voisins: string[];
-}[]
-
-export const vegetables: Vegetable = [
+[
   {
     "name": "Tomate",
     "description": "Plante fruitière très populaire, nécessite beaucoup de lumière et de chaleur.",

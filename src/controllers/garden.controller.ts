@@ -10,6 +10,7 @@ export class GardenController {
     private utils: Utils
   ) {}
 
+  //use to generate vegetables in database
   async putVegetables(req: Request<{}, {}, Vegetable>, res: Response) {
     vegetables.map(async element => {
             await this.prisma.vegetable.create({
