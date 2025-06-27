@@ -25,4 +25,10 @@ export class GardenController {
     res.status(201).json();
     return;
   }
+
+  // GET /api/vegetables (public)
+  async getAll(_req: Request, res: Response) {
+    const list = await this.prisma.vegetable.findMany({ orderBy: { name: 'asc' } });
+    res.status(200).json(list);
+  }
 }
