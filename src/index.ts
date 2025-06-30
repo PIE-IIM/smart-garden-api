@@ -31,6 +31,10 @@ app.post('/api/genvegetables', async (req, res) => {
   await gardenController.putVegetables(req, res);
 })
 
+app.get('/api/vegetables', async (req, res) => {
+  await gardenController.getVegetables(req, res);
+});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
