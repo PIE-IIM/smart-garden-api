@@ -8,46 +8,55 @@ datasource db {
 }
 
 model User {
-  id String @id @default(uuid())
+  id        String   @id @default(uuid())
   email     String   @unique
   password  String
-  name  String?
+  name      String?
   createdAt DateTime @default(now())
 
-  Token Token?
-  potagers   Potager[]  
+  Token    Token?
+  potagers Potager[]
 }
 
 model Token {
-  id String @id
+  id        String   @id
   createdAt DateTime @default(now())
-  expireAt DateTime
+  expireAt  DateTime
 
   userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 model Vegetable {
-  id String @id @default(uuid())
-  name String
-  description String
+  id             String   @id @default(uuid())
+  name           String
+  description    String
   specifications String[]
-  sowing String[]
-  plantation String[]
-  harvest String[]
-  affinity String[]
-  bad_neighbors String[]
+  sowing         String[]
+  plantation     String[]
+  harvest        String[]
+  affinity       String[]
+  bad_neighbors  String[]
 
-  potagers   Potager[]  
+  potagers       Potager[]
+  VagetableImage VegetableImage[]
+}
+
+model VegetableImage {
+  id  String @id @default(uuid())
+  url String
+
+  vegetableId String    @unique
+  vegetable   Vegetable @relation(fields: [vegetableId], references: [id])
 }
 
 model Potager {
-  id           String     @id @default(uuid())
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       String
-  vegetable    Vegetable  @relation(fields: [vegetableId], references: [id])
-  vegetableId  String
-  createdAt    DateTime   @default(now())
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  vegetable   Vegetable @relation(fields: [vegetableId], references: [id])
+  vegetableId String
+  createdAt   DateTime  @default(now())
 
-  @@unique([userId, vegetableId])   // un légume donné, une seule fois par user
+  @@unique([userId, vegetableId]) // un légume donné, une seule fois par user
 }

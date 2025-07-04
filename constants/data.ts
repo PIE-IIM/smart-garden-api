@@ -324,3 +324,86 @@ export const vegetables: Vegetable[] = [
     bad_neighbors: ["Chou"],
   },
 ];
+
+export const vegetableImages = [
+  {
+    name: "Tomate",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//tomate.png",
+  },
+  {
+    name: "Basilic",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//basilic.png",
+  },
+  {
+    name: "Persil",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//persil.jpg",
+  },
+  {
+    name: "Laitue",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//laitue.jpg",
+  },
+  {
+    name: "Ciboulette",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//ciboulette.jpg",
+  },
+  {
+    name: "Menthe",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//menthe.png",
+  },
+  {
+    name: "Épinard",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//epinard.jpg",
+  },
+  {
+    name: "Radis",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//radis.jpg",
+  },
+  {
+    name: "Carotte",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//carrote.png",
+  },
+  {
+    name: "Poivron",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//poivron.jpg",
+  },
+  {
+    name: "Courgette",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//courgette.jpg",
+  },
+  {
+    name: "Thym",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//thym.jpg",
+  },
+  {
+    name: "Romarin",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//romarin.png",
+  },
+  {
+    name: "Concombre",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//concombre.png",
+  },
+  {
+    name: "Oignon vert",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//oignon_vert.png",
+  },
+  {
+    name: "Cerfeuil",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//cerfeuil.png",
+  },
+  {
+    name: "Coriandre",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//coriandre.png",
+  },
+  {
+    name: "Piment",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//piment.jpeg",
+  },
+  {
+    name: "Betterave",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//betterave.jpg",
+  },
+  {
+    name: "Roquette",
+    url: "https://sxcwavkyzcytbcdnhceq.supabase.co/storage/v1/object/public/garden//roquette.png",
+  },
+];
