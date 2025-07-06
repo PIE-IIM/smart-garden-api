@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,8 +8,55 @@ datasource db {
 }
 
 model User {
-  id    Int     @default(autoincrement()) @id
-  email String  @unique
-  name  String?
-  hasGarden Boolean?
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+
+  Token    Token?
+  potagers Potager[]
+}
+
+model Token {
+  id        String   @id
+  createdAt DateTime @default(now())
+  expireAt  DateTime
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Vegetable {
+  id             String   @id @default(uuid())
+  name           String
+  description    String
+  specifications String[]
+  sowing         String[]
+  plantation     String[]
+  harvest        String[]
+  affinity       String[]
+  bad_neighbors  String[]
+
+  potagers       Potager[]
+  VagetableImage VegetableImage[]
+}
+
+model VegetableImage {
+  id  String @id @default(uuid())
+  url String
+
+  vegetableId String    @unique
+  vegetable   Vegetable @relation(fields: [vegetableId], references: [id])
+}
+
+model Potager {
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  vegetable   Vegetable @relation(fields: [vegetableId], references: [id])
+  vegetableId String
+  createdAt   DateTime  @default(now())
+
+  @@unique([userId, vegetableId]) // un légume donné, une seule fois par user
 }
