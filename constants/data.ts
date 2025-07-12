@@ -1,13 +1,4 @@
-export type Vegetable = {
-  name: string;
-  description: string;
-  specifications: string[];
-  sowing: string[];
-  plantation: string[];
-  harvest: string[];
-  affinity: string[];
-  bad_neighbors: string[];
-};
+import { Vegetable } from "../models/models";
 
 export const vegetables: Vegetable[] = [
   {

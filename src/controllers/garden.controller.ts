@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { Utils } from "../utils";
-import { Vegetable, vegetables, vegetableImages } from "../../constants/data";
+import { vegetables, vegetableImages } from "../../constants/data";
+import { Vegetable } from "../../models/models";
 
 export class GardenController {
   constructor(private prisma: PrismaClient, private utils: Utils) {}
@@ -44,9 +45,15 @@ export class GardenController {
 
   // GET /api/vegetables (public)
   async getAll(_req: Request, res: Response) {
-    const list = await this.prisma.vegetable.findMany({
-      orderBy: { name: "asc" },
+    const vegetables = await this.prisma.vegetable.findMany();
+    const images = await this.prisma.vegetableImage.findMany();
+    const vegetableList: Vegetable[] = vegetables;
+    vegetableList.map((vegetable) => {
+      const vegetableImages = images.filter(
+        (image) => image.vegetableId === vegetable.id
+      );
+      vegetable.images = vegetableImages.map((image) => image.url);
     });
-    res.status(200).json(list);
+    res.status(200).json(vegetableList);
   }
 }
