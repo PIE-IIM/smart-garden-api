@@ -44,13 +44,13 @@ CREATE TABLE "VegetableImage" (
 );
 
 -- CreateTable
-CREATE TABLE "Potager" (
+CREATE TABLE "GardenVegetable" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "vegetableId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "Potager_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "GardenVegetable_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -63,7 +63,7 @@ CREATE UNIQUE INDEX "Token_userId_key" ON "Token"("userId");
 CREATE UNIQUE INDEX "VegetableImage_vegetableId_key" ON "VegetableImage"("vegetableId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Potager_userId_vegetableId_key" ON "Potager"("userId", "vegetableId");
+CREATE UNIQUE INDEX "GardenVegetable_userId_vegetableId_key" ON "GardenVegetable"("userId", "vegetableId");
 
 -- AddForeignKey
 ALTER TABLE "Token" ADD CONSTRAINT "Token_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -72,7 +72,7 @@ ALTER TABLE "Token" ADD CONSTRAINT "Token_userId_fkey" FOREIGN KEY ("userId") RE
 ALTER TABLE "VegetableImage" ADD CONSTRAINT "VegetableImage_vegetableId_fkey" FOREIGN KEY ("vegetableId") REFERENCES "Vegetable"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Potager" ADD CONSTRAINT "Potager_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "GardenVegetable" ADD CONSTRAINT "GardenVegetable_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Potager" ADD CONSTRAINT "Potager_vegetableId_fkey" FOREIGN KEY ("vegetableId") REFERENCES "Vegetable"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "GardenVegetable" ADD CONSTRAINT "GardenVegetable_vegetableId_fkey" FOREIGN KEY ("vegetableId") REFERENCES "Vegetable"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
