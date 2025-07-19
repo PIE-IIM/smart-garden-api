@@ -47,14 +47,14 @@ export class GardenController {
   async getAll(_req: Request, res: Response) {
     const vegetables = await this.prisma.vegetable.findMany();
     const images = await this.prisma.vegetableImage.findMany();
-    const vegetableList: Vegetable[] = vegetables;
-    vegetableList.map((vegetable) => {
+    const vegetablesList: Vegetable[] = vegetables;
+    vegetablesList.map((vegetable) => {
       const vegetableImages = images.filter(
         (image) => image.vegetableId === vegetable.id
       );
       vegetable.images = vegetableImages.map((image) => image.url);
     });
-    res.status(200).json(vegetableList);
+    res.status(200).json(vegetablesList);
   }
 
   // POST /api/user/vegetable   body: { vegetableId }
@@ -64,15 +64,13 @@ export class GardenController {
       res.status(400).json({ message: "vegetableId requis." });
       return;
     }
-
     try {
       await this.prisma.gardenVegetable.create({
         data: { userId: req.user!.userId, vegetableId },
       });
-      res.sendStatus(201);
+      res.status(201).json({ success: true });
     } catch (e: any) {
-      if (e.code === "P2002") res.status(409).json({ message: "Déjà ajouté." });
-      else res.status(500).json({ message: "Erreur serveur." });
+      res.status(500).json({ message: "Erreur serveur." });
     }
   }
 
@@ -82,7 +80,15 @@ export class GardenController {
       where: { userId: req.user!.userId },
       include: { vegetable: true },
     });
-    res.status(200).json(rows.map((r) => r.vegetable));
+    const images = await this.prisma.vegetableImage.findMany();
+    const vegetablesList: Vegetable[] = rows.map((row) => row.vegetable);
+    vegetablesList.map((vegetable) => {
+      const vegetableImages = images.filter(
+        (image) => image.vegetableId === vegetable.id
+      );
+      vegetable.images = vegetableImages.map((image) => image.url);
+    });
+    res.status(200).json(vegetablesList);
   }
 
   // DELETE /api/user/vegetable/:id

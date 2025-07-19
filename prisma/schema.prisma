@@ -52,11 +52,10 @@ model VegetableImage {
 
 model GardenVegetable {
   id          String    @id @default(uuid())
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
   vegetable   Vegetable @relation(fields: [vegetableId], references: [id])
   vegetableId String
   createdAt   DateTime  @default(now())
 
-  @@unique([userId, vegetableId]) // un légume donné, une seule fois par user
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
 }
