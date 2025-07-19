@@ -68,10 +68,9 @@ export class GardenController {
       await this.prisma.gardenVegetable.create({
         data: { userId: req.user!.userId, vegetableId },
       });
-      res.sendStatus(201);
+      res.status(201).json({ success: true });
     } catch (e: any) {
-      if (e.code === "P2002") res.status(409).json({ message: "Déjà ajouté." });
-      else res.status(500).json({ message: "Erreur serveur." });
+      res.status(500).json({ message: "Erreur serveur." });
     }
   }
 

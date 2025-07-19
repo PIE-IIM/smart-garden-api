@@ -10,3 +10,6 @@ reset-db:
 
 clear-migrations:
 	rm -rf prisma/migrations
+
+wifi-ip:
+	ipconfig getifaddr en0
