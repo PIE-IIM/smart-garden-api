@@ -1,8 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { GardenVegetable, PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { Utils } from "../utils";
 import { vegetables, vegetableImages } from "../../constants/data";
-import { Vegetable } from "../../models/models";
+import { GardenVegetableWithRelation, Vegetable } from "../../models/models";
 import { AuthRequest } from "../middleware/auth.middleware";
 
 export class GardenController {
@@ -65,10 +65,10 @@ export class GardenController {
       return;
     }
     try {
-      await this.prisma.gardenVegetable.create({
+      const createdVegetable = await this.prisma.gardenVegetable.create({
         data: { userId: req.user!.userId, vegetableId },
       });
-      res.status(201).json({ success: true });
+      res.status(201).json({ gardenVegetableId: createdVegetable.id });
     } catch (e: any) {
       res.status(500).json({ message: "Erreur serveur." });
     }
@@ -81,7 +81,13 @@ export class GardenController {
       include: { vegetable: true },
     });
     const images = await this.prisma.vegetableImage.findMany();
-    const vegetablesList: Vegetable[] = rows.map((row) => row.vegetable);
+    const vegetablesList: Vegetable[] = rows.map((row) => {
+      const vegetableWithId: Vegetable = {
+        ...row.vegetable,
+        gardenVegetableId: row.id, // on ajoute l'id du gardenVegetable ici
+      };
+      return vegetableWithId;
+    });
     vegetablesList.map((vegetable) => {
       const vegetableImages = images.filter(
         (image) => image.vegetableId === vegetable.id
@@ -93,9 +99,13 @@ export class GardenController {
 
   // DELETE /api/user/vegetable/:id
   async remove(req: AuthRequest, res: Response) {
-    await this.prisma.gardenVegetable.deleteMany({
-      where: { userId: req.user!.userId, vegetableId: req.params.id },
-    });
-    res.sendStatus(204);
+    try {
+      await this.prisma.gardenVegetable.delete({
+        where: { userId: req.user!.userId, id: req.params.id },
+      });
+      res.status(200).json({ success: "success" });
+    } catch (e: any) {
+      res.status(500).json({ message: "Erreur serveur", error: e.message });
+    }
   }
 }

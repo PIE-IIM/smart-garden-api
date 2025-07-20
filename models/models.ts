@@ -20,4 +20,16 @@ export type Vegetable = {
   affinity: string[];
   bad_neighbors: string[];
   images?: string[];
+  gardenVegetableId?: string;
+};
+
+export type GardenVegetable = {
+  id: string;
+  vegetableId: string;
+  createdAt: string;
+  userId: string;
+};
+
+export type GardenVegetableWithRelation = GardenVegetable & {
+  vegetable: Vegetable;
 };

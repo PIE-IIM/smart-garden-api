@@ -6,10 +6,7 @@ import { Request, Response } from "express";
 import { Utils } from "../utils";
 
 export class UserController {
-  constructor(
-    private prisma: PrismaClient,
-    private utils: Utils
-  ) {}
+  constructor(private prisma: PrismaClient, private utils: Utils) {}
 
   async createUserSession(userId: string): Promise<string> {
     const token = this.utils.generateToken();
@@ -64,7 +61,7 @@ export class UserController {
     }
     const token = await this.createUserSession(currentUser.id);
 
-    res.status(201).json({"token": token});
+    res.status(201).json({ token: token });
     return;
   }
 
@@ -98,7 +95,13 @@ export class UserController {
 
     const token = await this.createUserSession(currentUser.id);
 
-    res.status(200).json({ token: token });
+    res
+      .status(200)
+      .json({
+        token: token,
+        userName: currentUser.name,
+        email: currentUser.email,
+      });
     return;
   }
 }
