@@ -14,8 +14,8 @@ model User {
   name      String?
   createdAt DateTime @default(now())
 
-  Token    Token?
-  potagers Potager[]
+  Token           Token?
+  gardenVegetable GardenVegetable[]
 }
 
 model Token {
@@ -38,8 +38,8 @@ model Vegetable {
   affinity       String[]
   bad_neighbors  String[]
 
-  potagers       Potager[]
-  VagetableImage VegetableImage[]
+  gardenVegetable GardenVegetable[]
+  VagetableImage  VegetableImage[]
 }
 
 model VegetableImage {
@@ -50,13 +50,12 @@ model VegetableImage {
   vegetable   Vegetable @relation(fields: [vegetableId], references: [id])
 }
 
-model Potager {
+model GardenVegetable {
   id          String    @id @default(uuid())
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
   vegetable   Vegetable @relation(fields: [vegetableId], references: [id])
   vegetableId String
   createdAt   DateTime  @default(now())
 
-  @@unique([userId, vegetableId]) // un légume donné, une seule fois par user
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
 }
