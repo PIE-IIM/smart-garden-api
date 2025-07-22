@@ -14,12 +14,6 @@ const utils = new Utils();
 const userController = new UserController(prisma, utils);
 const gardenController = new GardenController(prisma, utils);
 
-app.use(
-  cors({
-    origin: `${process.env.API_BASE_URL}`,
-    credentials: true,
-  })
-);
 app.use(express.json());
 
 app.post("/api/signup", async (req, res) => {
