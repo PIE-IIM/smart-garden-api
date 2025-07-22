@@ -43,6 +43,10 @@ app.delete("/api/user/vegetable/:id", authenticateToken, (req, res) =>
 );
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log(`REST API server ready at: http://localhost:${PORT}`)
-);
+app
+  .listen(PORT, () => {
+    console.log(`REST API server ready at: http://localhost:${PORT}`);
+  })
+  .on("error", (err) => {
+    console.error("Server failed to start:", err);
+  });

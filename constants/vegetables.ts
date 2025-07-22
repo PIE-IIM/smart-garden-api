@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { vegetables } from "./data.ts";
+import { vegetables } from "./data";
 
 const prisma = new PrismaClient();
 
@@ -10,12 +10,12 @@ async function putVegetablesToDb() {
         data: {
           name: element.name,
           description: element.description,
-          specifications: element.caracteristiques,
-          sowing: element.semis,
+          specifications: element.specifications,
+          sowing: element.sowing,
           plantation: element.plantation,
-          harvest: element.recolte,
-          affinity: element.affinites,
-          bad_neighbors: element.mauvais_voisins,
+          harvest: element.harvest,
+          affinity: element.affinity,
+          bad_neighbors: element.bad_neighbors,
         },
       });
     })
