@@ -14,33 +14,27 @@ let sensorData = {
 // POST routes
 router.post("/temperature", (req: Request, res: Response) => {
   sensorData.temperature = req.body.temperature;
-  console.log("Température reçue :", sensorData.temperature);
   res.status(200).send("Données reçues avec succès");
 });
 
 router.post("/humidite", (req: Request, res: Response) => {
   sensorData.humidite = req.body.humidite;
-  console.log("Humidité reçue :", sensorData.humidite);
   res.status(200).send("Données reçues avec succès");
 });
 
 router.post("/sol", (req: Request, res: Response) => {
   sensorData.tension_sol = req.body.humidite_sol;
   sensorData.valeur_brute_sol = req.body.valeur_brute_sol;
-  console.log("Humidité du sol :", sensorData.tension_sol);
-  console.log("Valeur brute du sol :", sensorData.valeur_brute_sol);
   res.status(200).send("Données reçues avec succès");
 });
 
 router.post("/luminosite", (req: Request, res: Response) => {
   sensorData.pourcentage_luminosite = req.body.luminosite;
-  console.log("Luminosité :", sensorData.pourcentage_luminosite);
   res.status(200).send("Données reçues avec succès");
 });
 
 router.post("/niveau_eau", (req: Request, res: Response) => {
   sensorData.valeur_eau = req.body.niveau_eau;
-  console.log("Niveau d'eau :", sensorData.valeur_eau);
   res.status(200).send("Données reçues avec succès");
 });
 
