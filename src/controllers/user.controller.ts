@@ -95,13 +95,11 @@ export class UserController {
 
     const token = await this.createUserSession(currentUser.id);
 
-    res
-      .status(200)
-      .json({
-        token: token,
-        userName: currentUser.name,
-        email: currentUser.email,
-      });
+    res.status(200).json({
+      token: token,
+      userName: currentUser.name,
+      email: currentUser.email,
+    });
     return;
   }
 }

@@ -16,10 +16,9 @@ const utils = new Utils();
 const userController = new UserController(prisma, utils);
 const gardenController = new GardenController(prisma, utils);
 
-app.use(cors()); // 👈 Ajout de cors si oublié
+app.use(cors());
 app.use(express.json());
 
-// Routes Utilisateurs
 app.post("/api/signup", async (req, res) => {
   await userController.createUser(req, res);
 });
@@ -28,7 +27,6 @@ app.post("/api/login", async (req, res) => {
   await userController.login(req, res);
 });
 
-// Routes Jardin
 app.post("/api/genvegetables", async (req, res) => {
   await gardenController.putVegetables(req, res);
 });
