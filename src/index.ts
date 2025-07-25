@@ -3,19 +3,23 @@ import express from "express";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { UserController } from "./controllers/user.controller";
-import { Utils } from "./utils";
 import { GardenController } from "./controllers/garden.controller";
 import { authenticateToken } from "./middleware/auth.middleware";
+import { Utils } from "./utils";
+import sensorController from "./controllers/sensor.controller";
 
 dotenv.config();
+
 const app = express();
 const prisma = new PrismaClient();
 const utils = new Utils();
 const userController = new UserController(prisma, utils);
 const gardenController = new GardenController(prisma, utils);
 
+app.use(cors()); // 👈 Ajout de cors si oublié
 app.use(express.json());
 
+// Routes Utilisateurs
 app.post("/api/signup", async (req, res) => {
   await userController.createUser(req, res);
 });
@@ -24,6 +28,7 @@ app.post("/api/login", async (req, res) => {
   await userController.login(req, res);
 });
 
+// Routes Jardin
 app.post("/api/genvegetables", async (req, res) => {
   await gardenController.putVegetables(req, res);
 });
@@ -41,6 +46,8 @@ app.post("/api/user/vegetable", authenticateToken, (req, res) =>
 app.delete("/api/user/vegetable/:id", authenticateToken, (req, res) =>
   gardenController.remove(req, res)
 );
+
+app.use("/api", sensorController);
 
 const PORT = process.env.PORT || 3000;
 app
