@@ -4,9 +4,10 @@ import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { UserController } from "./controllers/user.controller";
 import { GardenController } from "./controllers/garden.controller";
-import { authenticateToken } from "./middleware/auth.middleware";
+import { authenticateToken, AuthRequest } from "./middleware/auth.middleware";
 import { Utils } from "./utils";
 import sensorController from "./controllers/sensor.controller";
+import forumRoutes from "./routes/forum.routes";
 
 dotenv.config();
 
@@ -33,17 +34,25 @@ app.post("/api/genvegetables", async (req, res) => {
 
 app.get("/api/vegetables", (req, res) => gardenController.getAll(req, res));
 
-app.get("/api/user/vegetables", authenticateToken, (req, res) =>
-  gardenController.list(req, res)
+app.get(
+  "/api/user/vegetables",
+  authenticateToken as unknown as express.RequestHandler,
+  (req: express.Request, res: express.Response) => gardenController.list(req as unknown as AuthRequest, res)
 );
 
-app.post("/api/user/vegetable", authenticateToken, (req, res) =>
-  gardenController.add(req, res)
+app.post(
+  "/api/user/vegetable",
+  authenticateToken as unknown as express.RequestHandler,
+  (req: express.Request, res: express.Response) => gardenController.add(req as unknown as AuthRequest, res)
 );
 
-app.delete("/api/user/vegetable/:id", authenticateToken, (req, res) =>
-  gardenController.remove(req, res)
+app.delete(
+  "/api/user/vegetable/:id",
+  authenticateToken as unknown as express.RequestHandler,
+  (req: express.Request, res: express.Response) => gardenController.remove(req as unknown as AuthRequest, res)
 );
+
+app.use("/api/forum", forumRoutes);
 
 app.use("/api", sensorController);
 

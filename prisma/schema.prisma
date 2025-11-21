@@ -17,6 +17,10 @@ model User {
 
   Token           Token?
   gardenVegetable GardenVegetable[]
+
+  // Relations forum : correction ici
+  forumTopics   ForumTopic[]   @relation("UserForumTopics")
+  forumComments ForumComment[] @relation("UserForumComments")
 }
 
 model Token {
@@ -59,4 +63,51 @@ model GardenVegetable {
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
+}
+
+model ForumCategory {
+  id          BigInt       @id @default(autoincrement())
+  name        String       @unique
+  description String?
+  topics      ForumTopic[]
+}
+
+model ForumTopic {
+  id         BigInt          @id @default(autoincrement())
+  title      String
+  userId     String
+  categoryId BigInt
+  solved     Boolean         @default(false)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime?
+  user       User            @relation("UserForumTopics", fields: [userId], references: [id])
+  category   ForumCategory   @relation(fields: [categoryId], references: [id])
+  comments   ForumComment[]
+  topicTags  ForumTopicTag[]
+}
+
+model ForumComment {
+  id        BigInt     @id @default(autoincrement())
+  topicId   BigInt
+  userId    String
+  content   String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime?
+  user      User       @relation("UserForumComments", fields: [userId], references: [id])
+  topic     ForumTopic @relation(fields: [topicId], references: [id])
+}
+
+model ForumTag {
+  id        BigInt          @id @default(autoincrement())
+  name      String          @unique
+  topicTags ForumTopicTag[]
+}
+
+model ForumTopicTag {
+  topicId BigInt
+  tagId   BigInt
+  topic   ForumTopic @relation(fields: [topicId], references: [id])
+  tag     ForumTag   @relation(fields: [tagId], references: [id])
+
+  @@id([topicId, tagId])
 }
