@@ -30,6 +30,37 @@ export class UserController {
     });
   }
 
+  async getUser(req: Request, res: Response) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ message: "Auth header is missing" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ message: "Token Bearer is missing" });
+    }
+
+    const tokenData = await this.prisma.token.findUnique({
+      where: { id: token },
+    });
+
+    if (!tokenData) {
+      return res.status(404).json({ message: "Invalid Token" });
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: tokenData.userId },
+      select: { id: true, name: true, email: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
+
+    res.status(200).json(user);
+  }
+
   async createUser(req: Request<{}, {}, Signup>, res: Response) {
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
