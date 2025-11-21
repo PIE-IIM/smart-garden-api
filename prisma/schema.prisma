@@ -17,6 +17,7 @@ model User {
 
   Token           Token?
   gardenVegetable GardenVegetable[]
+  tasks           Task[]
 }
 
 model Token {
