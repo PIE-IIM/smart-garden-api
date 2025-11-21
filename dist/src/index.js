@@ -44,5 +44,11 @@ app.post("/api/user/vegetable", auth_middleware_1.authenticateToken, (req, res) 
 app.delete("/api/user/vegetable/:id", auth_middleware_1.authenticateToken, (req, res) => gardenController.remove(req, res));
 app.use("/api", sensor_controller_1.default);
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`REST API server ready at: http://localhost:${PORT}`));
+app
+    .listen(PORT, () => {
+    console.log(`REST API server ready at: http://localhost:${PORT}`);
+})
+    .on("error", (err) => {
+    console.error("Server failed to start:", err);
+});
 //# sourceMappingURL=index.js.map

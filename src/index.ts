@@ -38,7 +38,9 @@ app.get(
   "/api/user/vegetables",
   authenticateToken as unknown as express.RequestHandler,
   (req: express.Request, res: express.Response) => gardenController.list(req as unknown as AuthRequest, res)
-);
+app.get("/api/user", authenticateToken, async (req, res) => {
+  await userController.getUser(req, res);
+});
 
 app.post(
   "/api/user/vegetable",
