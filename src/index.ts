@@ -7,6 +7,7 @@ import { GardenController } from "./controllers/garden.controller";
 import { authenticateToken } from "./middleware/auth.middleware";
 import { Utils } from "./utils";
 import sensorController from "./controllers/sensor.controller";
+import { TaskController } from "./controllers/task.controller";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ const prisma = new PrismaClient();
 const utils = new Utils();
 const userController = new UserController(prisma, utils);
 const gardenController = new GardenController(prisma, utils);
+const taskController = new TaskController(prisma);
 
 app.use(cors());
 app.use(express.json());
@@ -59,3 +61,12 @@ app
   .on("error", (err) => {
     console.error("Server failed to start:", err);
   });
+  
+  app.post("/api/task", authenticateToken, (req, res) => 
+    taskController.add(req, res));
+
+  app.put("/api/task/:id", authenticateToken, (req, res) => 
+    taskController.edit(req, res));
+
+  app.delete("/api/task/:id", authenticateToken, (req, res) => 
+    taskController.remove(req, res));

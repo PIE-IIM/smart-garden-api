@@ -21,12 +21,14 @@ const garden_controller_1 = require("./controllers/garden.controller");
 const auth_middleware_1 = require("./middleware/auth.middleware");
 const utils_1 = require("./utils");
 const sensor_controller_1 = __importDefault(require("./controllers/sensor.controller"));
+const task_controller_1 = require("./controllers/task.controller");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const prisma = new client_1.PrismaClient();
 const utils = new utils_1.Utils();
 const userController = new user_controller_1.UserController(prisma, utils);
 const gardenController = new garden_controller_1.GardenController(prisma, utils);
+const taskController = new task_controller_1.TaskController(prisma);
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.post("/api/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -39,6 +41,9 @@ app.post("/api/genvegetables", (req, res) => __awaiter(void 0, void 0, void 0, f
     yield gardenController.putVegetables(req, res);
 }));
 app.get("/api/vegetables", (req, res) => gardenController.getAll(req, res));
+app.get("/api/user", auth_middleware_1.authenticateToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    yield userController.getUser(req, res);
+}));
 app.get("/api/user/vegetables", auth_middleware_1.authenticateToken, (req, res) => gardenController.list(req, res));
 app.post("/api/user/vegetable", auth_middleware_1.authenticateToken, (req, res) => gardenController.add(req, res));
 app.delete("/api/user/vegetable/:id", auth_middleware_1.authenticateToken, (req, res) => gardenController.remove(req, res));
@@ -51,4 +56,7 @@ app
     .on("error", (err) => {
     console.error("Server failed to start:", err);
 });
+app.post("/api/task", auth_middleware_1.authenticateToken, (req, res) => taskController.add(req, res));
+app.put("/api/task/:id", auth_middleware_1.authenticateToken, (req, res) => taskController.edit(req, res));
+app.delete("/api/task/:id", auth_middleware_1.authenticateToken, (req, res) => taskController.remove(req, res));
 //# sourceMappingURL=index.js.map

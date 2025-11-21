@@ -60,3 +60,25 @@ model GardenVegetable {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
 }
+
+model Task {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  category    String?
+  plant       String?
+  dueDate     DateTime?
+  priority    TaskPriority @default(MEDIUM)
+  reminder    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}

@@ -41,6 +41,32 @@ class UserController {
             });
         });
     }
+    getUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) {
+                return res.status(401).json({ message: "Auth header is missing" });
+            }
+            const token = authHeader.split(" ")[1];
+            if (!token) {
+                return res.status(401).json({ message: "Token Bearer is missing" });
+            }
+            const tokenData = yield this.prisma.token.findUnique({
+                where: { id: token },
+            });
+            if (!tokenData) {
+                return res.status(404).json({ message: "Invalid Token" });
+            }
+            const user = yield this.prisma.user.findUnique({
+                where: { id: tokenData.userId },
+                select: { id: true, name: true, email: true },
+            });
+            if (!user) {
+                return res.status(404).json({ message: "Utilisateur non trouvé" });
+            }
+            res.status(200).json(user);
+        });
+    }
     createUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { name, email, password } = req.body;
