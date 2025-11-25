@@ -1,21 +1,30 @@
 {
-    "compilerOptions": {
-      "target": "es2016",
-      "module": "commonjs",
-      "sourceMap": true,
-      "outDir": "dist",
-      "rootDir": ".",
-      "strict": true,
-      "lib": ["esnext"],
-      "esModuleInterop": true,
-      "skipLibCheck": true,
-      "forceConsistentCasingInFileNames": true,
-      "resolveJsonModule": true,
-      "moduleResolution": "node"
-    },
-    "include": ["src/**/*", "constants/**/*", "models/**/*", "prisma/**/*"],
-    "exclude": ["node_modules"],
-    "ts-node": {
-      "transpileOnly": true
-    }
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "strict": true,
+    "lib": [
+      "ES2022"
+    ],
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node"
+  },
+  "include": [
+    "src/**/*",
+    "constants/**/*",
+    "models/**/*",
+    "prisma/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "ts-node": {
+    "transpileOnly": true
   }
+}

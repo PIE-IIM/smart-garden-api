@@ -1,4 +1,4 @@
-import { GardenVegetable, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { Utils } from "../utils";
 import { vegetables, vegetableImages } from "../../constants/data";
@@ -6,7 +6,7 @@ import { GardenVegetableWithRelation, Vegetable } from "../../models/models";
 import { AuthRequest } from "../middleware/auth.middleware";
 
 export class GardenController {
-  constructor(private prisma: PrismaClient, private utils: Utils) {}
+  constructor(private prisma: PrismaClient, private utils: Utils) { }
 
   //use to generate vegetables in database
   async putVegetables(req: Request<{}, {}, Vegetable>, res: Response) {
@@ -50,9 +50,9 @@ export class GardenController {
     const vegetablesList: Vegetable[] = vegetables;
     vegetablesList.map((vegetable) => {
       const vegetableImages = images.filter(
-        (image) => image.vegetableId === vegetable.id
+        (image: { vegetableId: string; url: string }) => image.vegetableId === vegetable.id
       );
-      vegetable.images = vegetableImages.map((image) => image.url);
+      vegetable.images = vegetableImages.map((image: { url: string }) => image.url);
     });
     res.status(200).json(vegetablesList);
   }
@@ -81,18 +81,18 @@ export class GardenController {
       include: { vegetable: true },
     });
     const images = await this.prisma.vegetableImage.findMany();
-    const vegetablesList: Vegetable[] = rows.map((row) => {
+    const vegetablesList: Vegetable[] = rows.map((row: any) => {
       const vegetableWithId: Vegetable = {
         ...row.vegetable,
-        gardenVegetableId: row.id, // on ajoute l'id du gardenVegetable ici
+        gardenVegetableId: row.id,
       };
       return vegetableWithId;
     });
     vegetablesList.map((vegetable) => {
       const vegetableImages = images.filter(
-        (image) => image.vegetableId === vegetable.id
+        (image: { vegetableId: string; url: string }) => image.vegetableId === vegetable.id
       );
-      vegetable.images = vegetableImages.map((image) => image.url);
+      vegetable.images = vegetableImages.map((image: { url: string }) => image.url);
     });
     res.status(200).json(vegetablesList);
   }
