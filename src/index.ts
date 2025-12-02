@@ -29,11 +29,7 @@ app.post("/api/login", async (req, res) => {
   await userController.login(req, res);
 });
 
-app.post("/api/genvegetables", async (req, res) => {
-  await gardenController.putVegetables(req, res);
-});
-
-app.get("/api/vegetables", (req, res) => gardenController.getAll(req, res));
+// app.get("/api/vegetables", (req, res) => gardenController.getAll(req, res));
 
 app.get("/api/user", authenticateToken, async (req, res) => {
   await userController.getUser(req, res);

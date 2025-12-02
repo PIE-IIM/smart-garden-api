@@ -29,49 +29,26 @@ model Token {
   user   User   @relation(fields: [userId], references: [id])
 }
 
-model Vegetable {
-  id             String   @id @default(uuid())
-  name           String
-  description    String
-  specifications String[]
-  sowing         String[]
-  plantation     String[]
-  harvest        String[]
-  affinity       String[]
-  bad_neighbors  String[]
-
-  gardenVegetable GardenVegetable[]
-  VagetableImage  VegetableImage[]
-}
-
-model VegetableImage {
-  id  String @id @default(uuid())
-  url String
-
-  vegetableId String    @unique
-  vegetable   Vegetable @relation(fields: [vegetableId], references: [id])
-}
-
 model GardenVegetable {
-  id          String    @id @default(uuid())
-  vegetable   Vegetable @relation(fields: [vegetableId], references: [id])
+  id          String   @id @default(uuid())
+  // vegetable   Vegetable @relation(fields: [vegetableId], references: [id])
   vegetableId String
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
 }
 
 model Task {
-  id          String    @id @default(uuid())
+  id          String       @id @default(uuid())
   title       String
   description String?
   category    String?
   plant       String?
   dueDate     DateTime?
   priority    TaskPriority @default(MEDIUM)
-  reminder    Boolean     @default(false)
-  createdAt   DateTime    @default(now())
+  reminder    Boolean      @default(false)
+  createdAt   DateTime     @default(now())
 
   // Relations
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
