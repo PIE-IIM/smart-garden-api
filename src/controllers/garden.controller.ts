@@ -1,61 +1,59 @@
 import { PrismaClient } from "@prisma/client";
-import { Request, Response } from "express";
+import { Response } from "express";
 import { Utils } from "../utils";
-import { vegetables, vegetableImages } from "../../constants/data";
-import { GardenVegetableWithRelation, Vegetable } from "../../models/models";
 import { AuthRequest } from "../middleware/auth.middleware";
 
 export class GardenController {
-  constructor(private prisma: PrismaClient, private utils: Utils) { }
+  constructor(private prisma: PrismaClient, private utils: Utils) {}
 
   //use to generate vegetables in database
-  async putVegetables(req: Request<{}, {}, Vegetable>, res: Response) {
-    await Promise.all(
-      vegetables.map(async (vegetable) => {
-        const createdVegetable = await this.prisma.vegetable.create({
-          data: {
-            name: vegetable.name,
-            description: vegetable.description,
-            specifications: vegetable.specifications,
-            sowing: vegetable.sowing,
-            plantation: vegetable.plantation,
-            harvest: vegetable.harvest,
-            affinity: vegetable.affinity,
-            bad_neighbors: vegetable.bad_neighbors,
-          },
-        });
+  // async putVegetables(req: Request<{}, {}, Vegetable>, res: Response) {
+  //   await Promise.all(
+  //     vegetables.map(async (vegetable) => {
+  //       const createdVegetable = await this.prisma.vegetable.create({
+  //         data: {
+  //           name: vegetable.name,
+  //           description: vegetable.description,
+  //           specifications: vegetable.specifications,
+  //           sowing: vegetable.sowing,
+  //           plantation: vegetable.plantation,
+  //           harvest: vegetable.harvest,
+  //           affinity: vegetable.affinity,
+  //           bad_neighbors: vegetable.bad_neighbors,
+  //         },
+  //       });
 
-        const vegetableImage = vegetableImages.find(
-          (element) => element.name === vegetable.name
-        );
+  //       const vegetableImage = vegetableImages.find(
+  //         (element) => element.name === vegetable.name
+  //       );
 
-        if (vegetableImage) {
-          await this.prisma.vegetableImage.create({
-            data: {
-              url: vegetableImage.url,
-              vegetableId: createdVegetable.id,
-            },
-          });
-        }
-      })
-    );
+  //       if (vegetableImage) {
+  //         await this.prisma.vegetableImage.create({
+  //           data: {
+  //             url: vegetableImage.url,
+  //             vegetableId: createdVegetable.id,
+  //           },
+  //         });
+  //       }
+  //     })
+  //   );
 
-    res.status(201).json();
-  }
+  //   res.status(201).json();
+  // }
 
   // GET /api/vegetables (public)
-  async getAll(_req: Request, res: Response) {
-    const vegetables = await this.prisma.vegetable.findMany();
-    const images = await this.prisma.vegetableImage.findMany();
-    const vegetablesList: Vegetable[] = vegetables;
-    vegetablesList.map((vegetable) => {
-      const vegetableImages = images.filter(
-        (image: { vegetableId: string; url: string }) => image.vegetableId === vegetable.id
-      );
-      vegetable.images = vegetableImages.map((image: { url: string }) => image.url);
-    });
-    res.status(200).json(vegetablesList);
-  }
+  // async getAll(_req: Request, res: Response) {
+  //   const vegetables = await this.prisma.vegetable.findMany();
+  //   const images = await this.prisma.vegetableImage.findMany();
+  //   const vegetablesList: Vegetable[] = vegetables;
+  //   vegetablesList.map((vegetable) => {
+  //     const vegetableImages = images.filter(
+  //       (image: { vegetableId: string; url: string }) => image.vegetableId === vegetable.id
+  //     );
+  //     vegetable.images = vegetableImages.map((image: { url: string }) => image.url);
+  //   });
+  //   res.status(200).json(vegetablesList);
+  // }
 
   // POST /api/user/vegetable   body: { vegetableId }
   async add(req: AuthRequest, res: Response): Promise<void> {
@@ -78,23 +76,25 @@ export class GardenController {
   async list(req: AuthRequest, res: Response) {
     const rows = await this.prisma.gardenVegetable.findMany({
       where: { userId: req.user!.userId },
-      include: { vegetable: true },
     });
-    const images = await this.prisma.vegetableImage.findMany();
-    const vegetablesList: Vegetable[] = rows.map((row: any) => {
-      const vegetableWithId: Vegetable = {
-        ...row.vegetable,
-        gardenVegetableId: row.id,
-      };
-      return vegetableWithId;
-    });
-    vegetablesList.map((vegetable) => {
-      const vegetableImages = images.filter(
-        (image: { vegetableId: string; url: string }) => image.vegetableId === vegetable.id
-      );
-      vegetable.images = vegetableImages.map((image: { url: string }) => image.url);
-    });
-    res.status(200).json(vegetablesList);
+    // const images = await this.prisma.vegetableImage.findMany();
+    // const vegetablesList: Vegetable[] = rows.map((row: any) => {
+    //   const vegetableWithId: Vegetable = {
+    //     ...row.vegetable,
+    //     gardenVegetableId: row.id,
+    //   };
+    //   return vegetableWithId;
+    // });
+    // vegetablesList.map((vegetable) => {
+    //   const vegetableImages = images.filter(
+    //     (image: { vegetableId: string; url: string }) =>
+    //       image.vegetableId === vegetable.id
+    //   );
+    //   vegetable.images = vegetableImages.map(
+    //     (image: { url: string }) => image.url
+    //   );
+    // });
+    res.status(200).json(rows);
   }
 
   // DELETE /api/user/vegetable/:id
