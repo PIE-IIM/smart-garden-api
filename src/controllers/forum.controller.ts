@@ -160,4 +160,31 @@ export class ForumController {
             res.status(500).json({ message: "Erreur serveur.", error: e.message });
         }
     }
+
+    // GET /api/user/stats - Récupérer les stats de l'utilisateur
+    async getUserStats(req: AuthRequest, res: Response) {
+        try {
+            const userId = req.user!.userId;
+
+            const topicsCount = await this.prisma.topic.count({
+                where: { authorId: userId }
+            });
+
+            const commentsCount = await this.prisma.comment.count({
+                where: { authorId: userId }
+            });
+
+            const plantsCount = await this.prisma.gardenVegetable.count({
+                where: { userId }
+            });
+
+            res.status(200).json({
+                topicsCount,
+                commentsCount,
+                plantsCount
+            });
+        } catch (e: any) {
+            res.status(500).json({ message: "Erreur serveur.", error: e.message });
+        }
+    }
 }

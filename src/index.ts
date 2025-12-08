@@ -87,6 +87,10 @@ app.post("/api/topic/:id/comment", authenticateToken, (req, res) =>
   forumController.addComment(req, res)
 );
 
+app.get("/api/user/stats", authenticateToken, async (req, res) => {
+  await forumController.getUserStats(req, res);
+});
+
 const PORT = process.env.PORT || 3000;
 app
   .listen(PORT, () => {
