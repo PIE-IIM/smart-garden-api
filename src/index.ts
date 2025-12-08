@@ -8,6 +8,7 @@ import { authenticateToken } from "./middleware/auth.middleware";
 import { Utils } from "./utils";
 import sensorController from "./controllers/sensor.controller";
 import { TaskController } from "./controllers/task.controller";
+import { ForumController } from "./controllers/forum.controller";
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ const utils = new Utils();
 const userController = new UserController(prisma, utils);
 const gardenController = new GardenController(prisma, utils);
 const taskController = new TaskController(prisma);
+const forumController = new ForumController(prisma);
 
 app.use(cors());
 app.use(express.json());
@@ -59,6 +61,30 @@ app.put("/api/task/:id", authenticateToken, (req, res) =>
 
 app.delete("/api/task/:id", authenticateToken, (req, res) =>
   taskController.remove(req, res)
+);
+
+app.get("/api/tags", authenticateToken, (req, res) =>
+  forumController.getTags(req, res)
+);
+
+app.post("/api/tag", authenticateToken, (req, res) =>
+  forumController.createTag(req, res)
+);
+
+app.post("/api/topic", authenticateToken, (req, res) =>
+  forumController.createTopic(req, res)
+);
+
+app.get("/api/topics", authenticateToken, (req, res) =>
+  forumController.getTopics(req, res)
+);
+
+app.get("/api/topic/:id", authenticateToken, (req, res) =>
+  forumController.getTopic(req, res)
+);
+
+app.post("/api/topic/:id/comment", authenticateToken, (req, res) =>
+  forumController.addComment(req, res)
 );
 
 const PORT = process.env.PORT || 3000;
