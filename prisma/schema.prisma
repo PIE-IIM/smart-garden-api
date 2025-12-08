@@ -20,6 +20,7 @@ model User {
   Task            Task[]
   topics          Topic[]
   comments        Comment[]
+  tasks           Task[]
 }
 
 model Token {
