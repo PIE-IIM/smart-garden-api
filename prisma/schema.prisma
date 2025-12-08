@@ -18,6 +18,8 @@ model User {
   Token           Token?
   gardenVegetable GardenVegetable[]
   Task            Task[]
+  topics          Topic[]
+  comments        Comment[]
 }
 
 model Token {
@@ -59,4 +61,50 @@ enum TaskPriority {
   LOW
   MEDIUM
   HIGH
+}
+
+model ForumTag {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  
+  topics TopicTag[]
+}
+
+model Topic {
+  id          String   @id @default(uuid())
+  title       String
+  content     String   @db.Text
+  viewCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String
+  
+  tags     TopicTag[]
+  comments Comment[]
+}
+
+model TopicTag {
+  topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId String
+  
+  tag   ForumTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId String
+  
+  @@id([topicId, tagId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  
+  // Relations
+  topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId String
+  
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String
 }
