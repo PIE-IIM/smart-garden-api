@@ -62,6 +62,9 @@ app
     console.error("Server failed to start:", err);
   });
   
+  app.get("/api/task", authenticateToken, (req, res) =>
+    taskController.list(req, res));
+
   app.post("/api/task", authenticateToken, (req, res) => 
     taskController.add(req, res));
 

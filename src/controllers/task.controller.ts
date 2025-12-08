@@ -12,6 +12,7 @@ export class TaskController {
       res.status(400).json({ message: "title requis." });
       return;
     }
+
     try {
       const createdTask = await this.prisma.task.create({
         data: {
@@ -22,14 +23,18 @@ export class TaskController {
           dueDate: dueDate ? new Date(dueDate) : undefined,
           priority,
           reminder,
-          userId: req.user!.userId,
+          user: {
+            connect: { id: req.user!.userId },
+          },
         },
       });
+
       res.status(201).json({ taskId: createdTask.id });
     } catch (e: any) {
       res.status(500).json({ message: "Erreur serveur.", error: e.message });
     }
   }
+
 
   // PUT /api/task/:id
   async edit(req: AuthRequest, res: Response) {
@@ -79,4 +84,18 @@ export class TaskController {
       res.status(500).json({ message: "Erreur serveur", error: e.message });
     }
   }
+
+  // GET /api/task
+  async list(req: AuthRequest, res: Response) {
+    try {
+      const tasks = await this.prisma.task.findMany({
+        where: { userId: req.user!.userId },
+        orderBy: { dueDate: "asc" },
+      });
+      res.status(200).json({ tasks });
+    } catch (e: any) {
+      res.status(500).json({ message: "Erreur serveur.", error: e.message });
+    }
+  }
+
 }

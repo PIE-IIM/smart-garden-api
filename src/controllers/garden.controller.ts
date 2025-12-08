@@ -1,8 +1,8 @@
-import { GardenVegetable, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { Utils } from "../utils";
 import { vegetables, vegetableImages } from "../../constants/data";
-import { GardenVegetableWithRelation, Vegetable } from "../../models/models";
+import { Vegetable } from "../../models/models";
 import { AuthRequest } from "../middleware/auth.middleware";
 
 export class GardenController {
