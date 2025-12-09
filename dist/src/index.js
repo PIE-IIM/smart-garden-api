@@ -30,28 +30,18 @@ app.post("/api/signup", async (req, res) => {
 app.post("/api/login", async (req, res) => {
     await userController.login(req, res);
 });
-// app.get("/api/vegetables", (req, res) => gardenController.getAll(req, res));
-app.get("/api/user", auth_middleware_1.authenticateToken, async (req, res) => {
-    await userController.getUser(req, res);
-});
-
-app.put("/api/user", authenticateToken, async (req, res) => {
-  await userController.updateUser(req, res);
-});
-
 app.get("/api/stats", auth_middleware_1.authenticateToken, async (req, res) => {
     await forumController.getUserStats(req, res);
 });
-
-app.get("/api/user/topics", authenticateToken, (req, res) =>
-  forumController.getUserTopics(req, res)
-);
-
-app.get("/api/user/comments", authenticateToken, (req, res) =>
-  forumController.getUserComments(req, res)
-);
-
 app.get("/api/user/vegetables", auth_middleware_1.authenticateToken, (req, res) => gardenController.list(req, res));
+app.get("/api/user", auth_middleware_1.authenticateToken, async (req, res) => {
+    await userController.getUser(req, res);
+});
+app.put("/api/user", auth_middleware_1.authenticateToken, async (req, res) => {
+    await userController.updateUser(req, res);
+});
+app.get("/api/user/topics", auth_middleware_1.authenticateToken, (req, res) => forumController.getUserTopics(req, res));
+app.get("/api/user/comments", auth_middleware_1.authenticateToken, (req, res) => forumController.getUserComments(req, res));
 app.post("/api/user/vegetable", auth_middleware_1.authenticateToken, (req, res) => gardenController.add(req, res));
 app.delete("/api/user/vegetable/:id", auth_middleware_1.authenticateToken, (req, res) => gardenController.remove(req, res));
 app.use("/api", sensor_controller_1.default);
