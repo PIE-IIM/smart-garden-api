@@ -8,50 +8,6 @@ class GardenController {
         this.prisma = prisma;
         this.utils = utils;
     }
-    //use to generate vegetables in database
-    // async putVegetables(req: Request<{}, {}, Vegetable>, res: Response) {
-    //   await Promise.all(
-    //     vegetables.map(async (vegetable) => {
-    //       const createdVegetable = await this.prisma.vegetable.create({
-    //         data: {
-    //           name: vegetable.name,
-    //           description: vegetable.description,
-    //           specifications: vegetable.specifications,
-    //           sowing: vegetable.sowing,
-    //           plantation: vegetable.plantation,
-    //           harvest: vegetable.harvest,
-    //           affinity: vegetable.affinity,
-    //           bad_neighbors: vegetable.bad_neighbors,
-    //         },
-    //       });
-    //       const vegetableImage = vegetableImages.find(
-    //         (element) => element.name === vegetable.name
-    //       );
-    //       if (vegetableImage) {
-    //         await this.prisma.vegetableImage.create({
-    //           data: {
-    //             url: vegetableImage.url,
-    //             vegetableId: createdVegetable.id,
-    //           },
-    //         });
-    //       }
-    //     })
-    //   );
-    //   res.status(201).json();
-    // }
-    // GET /api/vegetables (public)
-    // async getAll(_req: Request, res: Response) {
-    //   const vegetables = await this.prisma.vegetable.findMany();
-    //   const images = await this.prisma.vegetableImage.findMany();
-    //   const vegetablesList: Vegetable[] = vegetables;
-    //   vegetablesList.map((vegetable) => {
-    //     const vegetableImages = images.filter(
-    //       (image: { vegetableId: string; url: string }) => image.vegetableId === vegetable.id
-    //     );
-    //     vegetable.images = vegetableImages.map((image: { url: string }) => image.url);
-    //   });
-    //   res.status(200).json(vegetablesList);
-    // }
     // POST /api/user/vegetable   body: { vegetableId }
     async add(req, res) {
         const { vegetableId } = req.body;
@@ -74,23 +30,6 @@ class GardenController {
         const rows = await this.prisma.gardenVegetable.findMany({
             where: { userId: req.user.userId },
         });
-        // const images = await this.prisma.vegetableImage.findMany();
-        // const vegetablesList: Vegetable[] = rows.map((row: any) => {
-        //   const vegetableWithId: Vegetable = {
-        //     ...row.vegetable,
-        //     gardenVegetableId: row.id,
-        //   };
-        //   return vegetableWithId;
-        // });
-        // vegetablesList.map((vegetable) => {
-        //   const vegetableImages = images.filter(
-        //     (image: { vegetableId: string; url: string }) =>
-        //       image.vegetableId === vegetable.id
-        //   );
-        //   vegetable.images = vegetableImages.map(
-        //     (image: { url: string }) => image.url
-        //   );
-        // });
         res.status(200).json(rows);
     }
     // DELETE /api/user/vegetable/:id

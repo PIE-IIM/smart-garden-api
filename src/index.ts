@@ -65,18 +65,6 @@ app.delete("/api/user/vegetable/:id", authenticateToken, (req, res) =>
 
 app.use("/api", sensorController);
 
-app.post("/api/task", authenticateToken, (req, res) =>
-  taskController.add(req, res)
-);
-
-app.put("/api/task/:id", authenticateToken, (req, res) =>
-  taskController.edit(req, res)
-);
-
-app.delete("/api/task/:id", authenticateToken, (req, res) =>
-  taskController.remove(req, res)
-);
-
 app.get("/api/tags", authenticateToken, (req, res) =>
   forumController.getTags(req, res)
 );
@@ -109,3 +97,15 @@ app
   .on("error", (err) => {
     console.error("Server failed to start:", err);
   });
+  
+  app.get("/api/task", authenticateToken, (req, res) =>
+    taskController.list(req, res));
+
+  app.post("/api/task", authenticateToken, (req, res) => 
+    taskController.add(req, res));
+
+  app.put("/api/task/:id", authenticateToken, (req, res) => 
+    taskController.edit(req, res));
+
+  app.delete("/api/task/:id", authenticateToken, (req, res) => 
+    taskController.remove(req, res));

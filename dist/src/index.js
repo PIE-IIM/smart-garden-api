@@ -30,34 +30,22 @@ app.post("/api/signup", async (req, res) => {
 app.post("/api/login", async (req, res) => {
     await userController.login(req, res);
 });
-// app.get("/api/vegetables", (req, res) => gardenController.getAll(req, res));
-app.get("/api/user", auth_middleware_1.authenticateToken, async (req, res) => {
-    await userController.getUser(req, res);
-});
-
-app.put("/api/user", authenticateToken, async (req, res) => {
-  await userController.updateUser(req, res);
-});
-
 app.get("/api/stats", auth_middleware_1.authenticateToken, async (req, res) => {
     await forumController.getUserStats(req, res);
 });
 
-app.get("/api/user/topics", auth_middleware_1.authenticateToken, (req, res) =>
-  forumController.getUserTopics(req, res)
-);
-
-app.get("/api/user/comments", auth_middleware_1.authenticateToken, (req, res) =>
-  forumController.getUserComments(req, res)
-);
-
 app.get("/api/user/vegetables", auth_middleware_1.authenticateToken, (req, res) => gardenController.list(req, res));
+app.get("/api/user", auth_middleware_1.authenticateToken, async (req, res) => {
+    await userController.getUser(req, res);
+});
+app.put("/api/user", auth_middleware_1.authenticateToken, async (req, res) => {
+    await userController.updateUser(req, res);
+});
+app.get("/api/user/topics", auth_middleware_1.authenticateToken, (req, res) => forumController.getUserTopics(req, res));
+app.get("/api/user/comments", auth_middleware_1.authenticateToken, (req, res) => forumController.getUserComments(req, res));
 app.post("/api/user/vegetable", auth_middleware_1.authenticateToken, (req, res) => gardenController.add(req, res));
 app.delete("/api/user/vegetable/:id", auth_middleware_1.authenticateToken, (req, res) => gardenController.remove(req, res));
 app.use("/api", sensor_controller_1.default);
-app.post("/api/task", auth_middleware_1.authenticateToken, (req, res) => taskController.add(req, res));
-app.put("/api/task/:id", auth_middleware_1.authenticateToken, (req, res) => taskController.edit(req, res));
-app.delete("/api/task/:id", auth_middleware_1.authenticateToken, (req, res) => taskController.remove(req, res));
 app.get("/api/tags", auth_middleware_1.authenticateToken, (req, res) => forumController.getTags(req, res));
 app.post("/api/tag", auth_middleware_1.authenticateToken, (req, res) => forumController.createTag(req, res));
 app.post("/api/topic", auth_middleware_1.authenticateToken, (req, res) => forumController.createTopic(req, res));
@@ -72,4 +60,8 @@ app
     .on("error", (err) => {
     console.error("Server failed to start:", err);
 });
+app.get("/api/task", auth_middleware_1.authenticateToken, (req, res) => taskController.list(req, res));
+app.post("/api/task", auth_middleware_1.authenticateToken, (req, res) => taskController.add(req, res));
+app.put("/api/task/:id", auth_middleware_1.authenticateToken, (req, res) => taskController.edit(req, res));
+app.delete("/api/task/:id", auth_middleware_1.authenticateToken, (req, res) => taskController.remove(req, res));
 //# sourceMappingURL=index.js.map
