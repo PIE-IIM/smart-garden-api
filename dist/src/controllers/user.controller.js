@@ -118,6 +118,38 @@ class UserController {
         });
         return;
     }
+    // PUT /api/user - Mettre à jour le profil utilisateur
+    async updateUser(req, res) {
+        const { name, email, phone, bio } = req.body;
+        const userId = req.user.userId;
+        try {
+            if (email) {
+                const existingUser = await this.prisma.user.findUnique({
+                    where: { email }
+                });
+                if (existingUser && existingUser.id !== userId) {
+                    res.status(400).json({ message: "Cet email est déjà utilisé." });
+                    return;
+                }
+            }
+            const updatedUser = await this.prisma.user.update({
+                where: { id: userId },
+                data: {
+                    name: name || undefined,
+                    email: email || undefined,
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                }
+            });
+            res.status(200).json(updatedUser);
+        }
+        catch (e) {
+            res.status(500).json({ message: "Erreur serveur.", error: e.message });
+        }
+    }
 }
 exports.UserController = UserController;
 //# sourceMappingURL=user.controller.js.map
