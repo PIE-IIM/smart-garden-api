@@ -161,7 +161,7 @@ export class ForumController {
         }
     }
 
-    // GET /api/user/stats - Récupérer les stats de l'utilisateur
+    // GET /api/stats - Récupérer les stats de l'utilisateur
     async getUserStats(req: AuthRequest, res: Response) {
         try {
             const userId = req.user!.userId;
