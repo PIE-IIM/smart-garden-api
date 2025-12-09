@@ -187,4 +187,51 @@ export class ForumController {
             res.status(500).json({ message: "Erreur serveur.", error: e.message });
         }
     }
+
+    // GET /api/user/topics - Récupérer les topics de l'utilisateur connecté
+    async getUserTopics(req: AuthRequest, res: Response) {
+        try {
+            const userId = req.user!.userId;
+
+            const topics = await this.prisma.topic.findMany({
+                where: { authorId: userId },
+                include: {
+                    author: { select: { id: true, name: true } },
+                    tags: { include: { tag: true } },
+                    _count: { select: { comments: true } }
+                },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            res.status(200).json(topics);
+        } catch (e: any) {
+            res.status(500).json({ message: "Erreur serveur.", error: e.message });
+        }
+    }
+
+    // GET /api/user/comments - Récupérer les commentaires de l'utilisateur connecté
+    async getUserComments(req: AuthRequest, res: Response) {
+        try {
+            const userId = req.user!.userId;
+
+            const comments = await this.prisma.comment.findMany({
+                where: { authorId: userId },
+                include: {
+                    author: { select: { id: true, name: true } },
+                    topic: {
+                        select: {
+                            id: true,
+                            title: true,
+                            tags: { include: { tag: true } }
+                        }
+                    }
+                },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            res.status(200).json(comments);
+        } catch (e: any) {
+            res.status(500).json({ message: "Erreur serveur.", error: e.message });
+        }
+    }
 }
