@@ -43,11 +43,11 @@ app.get("/api/stats", auth_middleware_1.authenticateToken, async (req, res) => {
     await forumController.getUserStats(req, res);
 });
 
-app.get("/api/user/topics", authenticateToken, (req, res) =>
+app.get("/api/user/topics", auth_middleware_1.authenticateToken, (req, res) =>
   forumController.getUserTopics(req, res)
 );
 
-app.get("/api/user/comments", authenticateToken, (req, res) =>
+app.get("/api/user/comments", auth_middleware_1.authenticateToken, (req, res) =>
   forumController.getUserComments(req, res)
 );
 
