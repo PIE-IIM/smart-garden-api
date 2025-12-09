@@ -43,6 +43,18 @@ app.get("/api/user", authenticateToken, async (req, res) => {
   await userController.getUser(req, res);
 });
 
+app.put("/api/user", authenticateToken, async (req, res) => {
+  await userController.updateUser(req, res);
+});
+
+app.get("/api/user/topics", authenticateToken, (req, res) =>
+  forumController.getUserTopics(req, res)
+);
+
+app.get("/api/user/comments", authenticateToken, (req, res) =>
+  forumController.getUserComments(req, res)
+);
+
 app.post("/api/user/vegetable", authenticateToken, (req, res) =>
   gardenController.add(req, res)
 );
