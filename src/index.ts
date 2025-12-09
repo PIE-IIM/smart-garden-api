@@ -31,15 +31,17 @@ app.post("/api/login", async (req, res) => {
   await userController.login(req, res);
 });
 
-// app.get("/api/vegetables", (req, res) => gardenController.getAll(req, res));
-
-app.get("/api/user", authenticateToken, async (req, res) => {
-  await userController.getUser(req, res);
+app.get("/api/stats", authenticateToken, async (req, res) => {
+  await forumController.getUserStats(req, res);
 });
 
 app.get("/api/user/vegetables", authenticateToken, (req, res) =>
   gardenController.list(req, res)
 );
+
+app.get("/api/user", authenticateToken, async (req, res) => {
+  await userController.getUser(req, res);
+});
 
 app.post("/api/user/vegetable", authenticateToken, (req, res) =>
   gardenController.add(req, res)
@@ -74,10 +76,6 @@ app.get("/api/topic/:id", authenticateToken, (req, res) =>
 app.post("/api/topic/:id/comment", authenticateToken, (req, res) =>
   forumController.addComment(req, res)
 );
-
-app.get("/api/user/stats", authenticateToken, async (req, res) => {
-  await forumController.getUserStats(req, res);
-});
 
 const PORT = process.env.PORT || 3000;
 app
