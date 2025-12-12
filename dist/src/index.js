@@ -13,7 +13,7 @@ const auth_middleware_1 = require("./middleware/auth.middleware");
 const utils_1 = require("./utils");
 const sensor_controller_1 = __importDefault(require("./controllers/sensor.controller"));
 const task_controller_1 = require("./controllers/task.controller");
-const forum_controller_1 = require("./controllers/forum.controller");
+const social_controller_1 = require("./controllers/social.controller");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const prisma = new client_1.PrismaClient();
@@ -21,7 +21,7 @@ const utils = new utils_1.Utils();
 const userController = new user_controller_1.UserController(prisma, utils);
 const gardenController = new garden_controller_1.GardenController(prisma, utils);
 const taskController = new task_controller_1.TaskController(prisma);
-const forumController = new forum_controller_1.ForumController(prisma);
+const forumController = new social_controller_1.ForumController(prisma);
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.post("/api/signup", async (req, res) => {
