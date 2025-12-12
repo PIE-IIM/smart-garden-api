@@ -20,6 +20,11 @@ model User {
   Task            Task[]
   topics          Topic[]
   comments        Comment[]
+  posts           Post[]            @relation("UserPosts")
+  postLikes       PostLike[]        @relation("UserPostLikes")
+  postComments    PostComment[]     @relation("UserPostComments")
+  tutorials       Tutorial[]        @relation("UserTutorials")
+  tutorialLikes   TutorialLike[]    @relation("UserTutorialLikes")
 }
 
 model Token {
@@ -67,21 +72,20 @@ model ForumTag {
   id        String   @id @default(uuid())
   name      String   @unique
   createdAt DateTime @default(now())
-  
+
   topics TopicTag[]
 }
 
 model Topic {
-  id          String   @id @default(uuid())
-  title       String
-  content     String   @db.Text
-  viewCount   Int      @default(0)
-  createdAt   DateTime @default(now())
-  
-  // Relations
+  id        String   @id @default(uuid())
+  title     String
+  content   String   @db.Text
+  viewCount Int      @default(0)
+  createdAt DateTime @default(now())
+
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId String
-  
+
   tags     TopicTag[]
   comments Comment[]
 }
@@ -89,10 +93,10 @@ model Topic {
 model TopicTag {
   topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
   topicId String
-  
+
   tag   ForumTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
   tagId String
-  
+
   @@id([topicId, tagId])
 }
 
@@ -100,11 +104,110 @@ model Comment {
   id        String   @id @default(uuid())
   content   String   @db.Text
   createdAt DateTime @default(now())
-  
-  // Relations
+
   topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
   topicId String
-  
+
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId String
+}
+
+model Post {
+  id       String   @id @default(cuid())
+  content  String   @db.Text
+  images   String[]
+  authorId String
+  author   User     @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
+
+  likes    PostLike[]
+  comments PostComment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model PostLike {
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation("UserPostLikes", fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model PostComment {
+  id       String @id @default(cuid())
+  content  String @db.Text
+  postId   String
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId String
+  author   User   @relation("UserPostComments", fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId])
+  @@index([authorId])
+}
+
+enum TutorialType {
+  VIDEO
+  ARTICLE
+}
+
+enum TutorialCategory {
+  ASTUCES
+  DIY
+  TECHNIQUES
+}
+
+model Tutorial {
+  id          String           @id @default(cuid())
+  title       String
+  description String?          @db.Text
+  type        TutorialType
+  category    TutorialCategory
+
+  videoUrl      String?
+  videoDuration Int?
+  thumbnail     String?
+
+  content String?  @db.Text
+  images  String[]
+
+  authorId String
+  author   User   @relation("UserTutorials", fields: [authorId], references: [id], onDelete: Cascade)
+
+  likes     TutorialLike[]
+  viewCount Int            @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([type])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model TutorialLike {
+  id         String   @id @default(cuid())
+  tutorialId String
+  tutorial   Tutorial @relation(fields: [tutorialId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation("UserTutorialLikes", fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([tutorialId, userId])
+  @@index([tutorialId])
+  @@index([userId])
 }
