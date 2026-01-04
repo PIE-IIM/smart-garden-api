@@ -54,6 +54,10 @@ app.post("/api/user/vegetable", authenticateToken, (req, res) =>
   gardenController.add(req, res)
 );
 
+app.post("/api/onboarding", authenticateToken, (req, res) =>
+  gardenController.addOnboarding(req, res)
+)
+
 app.delete("/api/user/vegetable/:id", authenticateToken, (req, res) =>
   gardenController.remove(req, res)
 );
@@ -66,15 +70,15 @@ app.get("/api/task", authenticateToken, (req, res) =>
   taskController.list(req, res)
 );
 
-app.post("/api/task", authenticateToken, (req, res) => 
+app.post("/api/task", authenticateToken, (req, res) =>
   taskController.add(req, res)
 );
 
-app.put("/api/task/:id", authenticateToken, (req, res) => 
+app.put("/api/task/:id", authenticateToken, (req, res) =>
   taskController.edit(req, res)
 );
 
-app.delete("/api/task/:id", authenticateToken, (req, res) => 
+app.delete("/api/task/:id", authenticateToken, (req, res) =>
   taskController.remove(req, res)
 );
 
