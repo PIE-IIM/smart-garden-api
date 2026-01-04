@@ -4,7 +4,7 @@ import { Utils } from "../utils";
 import { AuthRequest } from "../middleware/auth.middleware";
 
 export class GardenController {
-  constructor(private prisma: PrismaClient, private utils: Utils) {}
+  constructor(private prisma: PrismaClient, private utils: Utils) { }
 
   // POST /api/user/vegetable   body: { vegetableId }
   async add(req: AuthRequest, res: Response): Promise<void> {
@@ -20,6 +20,32 @@ export class GardenController {
       res.status(201).json({ gardenVegetableId: createdVegetable.id });
     } catch (e: any) {
       res.status(500).json({ message: "Erreur serveur." });
+    }
+  }
+
+  // POST /api/onboarding
+  async addOnboarding(req: AuthRequest, res: Response) {
+    const { level, gardenName, gardenLocation } = req.body
+    const id = req.user!.userId;
+
+    if (!level || !gardenName || !gardenLocation || !id) {
+      res.status(400).json({ message: "Missing fields" });
+      return
+    }
+    try {
+      await this.prisma.gardenData.create({
+        data: { name: gardenName, location: gardenLocation, userId: req.user!.userId }
+      })
+      await this.prisma.user.update({
+        where: { id },
+        data: {
+          level: level
+        }
+      })
+      res.status(201).json({ message: 'ok' })
+    } catch (e: any) {
+      res.status(500).json({ message: "Erreur serveur." });
+
     }
   }
 

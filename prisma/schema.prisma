@@ -13,10 +13,12 @@ model User {
   email     String   @unique
   password  String
   name      String?
+  level     String?
   createdAt DateTime @default(now())
 
   Token           Token?
   gardenVegetable GardenVegetable[]
+  gardenData GardenData?
   Task            Task[]
   topics          Topic[]
   comments        Comment[]
@@ -44,6 +46,15 @@ model GardenVegetable {
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
+}
+
+model GardenData {
+  id          String   @id @default(uuid())
+  name String
+  location String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
 }
 
 model Task {
