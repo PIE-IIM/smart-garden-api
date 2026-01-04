@@ -131,6 +131,7 @@ export class UserController {
       token: token,
       userName: currentUser.name,
       email: currentUser.email,
+      level: currentUser.level
     });
     return;
   }
