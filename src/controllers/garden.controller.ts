@@ -44,7 +44,7 @@ export class GardenController {
       })
       res.status(201).json({ message: 'ok' })
     } catch (e: any) {
-      res.status(500).json({ message: "Erreur serveur." });
+      res.status(500).json({ message: "Error." });
 
     }
   }
@@ -60,9 +60,26 @@ export class GardenController {
   // DELETE /api/user/vegetable/:id
   async remove(req: AuthRequest, res: Response) {
     try {
-      await this.prisma.gardenVegetable.delete({
-        where: { userId: req.user!.userId, id: req.params.id },
+      // Vérifier que le légume existe et appartient à l'utilisateur
+      const gardenVegetable = await this.prisma.gardenVegetable.findUnique({
+        where: { id: req.params.id },
       });
+
+      if (!gardenVegetable) {
+        res.status(404).json({});
+        return;
+      }
+
+      if (gardenVegetable.userId !== req.user!.userId) {
+        res.status(403).json({ message: "Non autorisé" });
+        return;
+      }
+
+      // Supprimer le légume
+      await this.prisma.gardenVegetable.delete({
+        where: { id: req.params.id },
+      });
+
       res.status(200).json({ success: "success" });
     } catch (e: any) {
       res.status(500).json({ message: "Erreur serveur", error: e.message });
