@@ -20,7 +20,6 @@ model User {
   gardenVegetable GardenVegetable[]
   gardenData GardenData?
   Task            Task[]
-  Token           Token?
   topics          Topic[]
   comments        Comment[]
   posts           Post[]            @relation("UserPosts")
@@ -34,8 +33,9 @@ model Token {
   id        String   @id
   createdAt DateTime @default(now())
   expireAt  DateTime
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 model GardenVegetable {
@@ -46,6 +46,8 @@ model GardenVegetable {
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
+
+  tasks Task[]
 }
 
 model GardenData {
@@ -55,6 +57,8 @@ model GardenData {
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique
+
+  tasks Task[]
 }
 
 model Task {
@@ -64,6 +68,8 @@ model Task {
   category    String?
   plant       GardenVegetable?  @relation(fields: [plantId], references: [id])
   plantId     String?
+  gardenData      GardenData?  @relation(fields: [gardenDataId], references: [id])
+  gardenDataId    String?
   dueDate     DateTime?
   priority    TaskPriority @default(MEDIUM)
   reminder    Boolean      @default(false)
@@ -75,6 +81,12 @@ model Task {
   // Relations
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
 }
 
 model ForumTag {
@@ -100,6 +112,7 @@ model Topic {
 }
 
 model TopicTag {
+  topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
   topicId String
 
   tag   ForumTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
@@ -110,55 +123,7 @@ model TopicTag {
 
 model Comment {
   id        String   @id @default(uuid())
-  content   String
-  createdAt DateTime @default(now())
-  topicId   String
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
-}
-
-model GardenData {
-  id       String @id
-  name     String
-  location String
-  userId   String @unique
-  User     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Post {
-  id          String        @id
-  content     String
-  images      String[]
-  authorId    String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime
-  User        User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  PostComment PostComment[]
-  PostLike    PostLike[]
-
-  @@index([authorId])
-  @@index([createdAt])
-}
-
-model PostComment {
-  id        String   @id
-  content   String
-  postId    String
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime
-  User      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  Post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  @@index([authorId])
-  @@index([postId])
-}
-
-model PostLike {
-  id        String   @id
-  postId    String
-  userId    String
+  content   String   @db.Text
   createdAt DateTime @default(now())
 
   topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
