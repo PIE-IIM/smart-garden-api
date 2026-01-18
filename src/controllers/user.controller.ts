@@ -4,9 +4,10 @@ import bcrypt from "bcryptjs";
 import { Login, Signup } from "../../models/models";
 import { Request, Response } from "express";
 import { Utils } from "../utils";
+import { AuthRequest } from "../middleware/auth.middleware";
 
 export class UserController {
-  constructor(private prisma: PrismaClient, private utils: Utils) {}
+  constructor(private prisma: PrismaClient, private utils: Utils) { }
 
   async createUserSession(userId: string): Promise<string> {
     const token = this.utils.generateToken();
@@ -51,7 +52,7 @@ export class UserController {
 
     const user = await this.prisma.user.findUnique({
       where: { id: tokenData.userId },
-      select: { id: true, name: true, email: true },
+      select: { id: true, name: true, email: true, level: true },
     });
 
     if (!user) {
@@ -130,7 +131,44 @@ export class UserController {
       token: token,
       userName: currentUser.name,
       email: currentUser.email,
+      level: currentUser.level
     });
     return;
+  }
+
+  // PUT /api/user - Mettre à jour le profil utilisateur
+  async updateUser(req: AuthRequest, res: Response) {
+    const { name, email, phone, bio } = req.body;
+    const userId = req.user!.userId;
+
+    try {
+      if (email) {
+        const existingUser = await this.prisma.user.findUnique({
+          where: { email }
+        });
+
+        if (existingUser && existingUser.id !== userId) {
+          res.status(400).json({ message: "Cet email est déjà utilisé." });
+          return;
+        }
+      }
+
+      const updatedUser = await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          name: name || undefined,
+          email: email || undefined,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        }
+      });
+
+      res.status(200).json(updatedUser);
+    } catch (e: any) {
+      res.status(500).json({ message: "Erreur serveur.", error: e.message });
+    }
   }
 }
