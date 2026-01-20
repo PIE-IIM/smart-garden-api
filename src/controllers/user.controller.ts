@@ -138,7 +138,7 @@ export class UserController {
 
   // PUT /api/user - Mettre à jour le profil utilisateur
   async updateUser(req: AuthRequest, res: Response) {
-    const { name, email, phone, bio } = req.body;
+    const { name, email, phone, bio, level } = req.body;
     const userId = req.user!.userId;
 
     try {
@@ -158,11 +158,13 @@ export class UserController {
         data: {
           name: name || undefined,
           email: email || undefined,
+          level: level ?? undefined,
         },
         select: {
           id: true,
           name: true,
           email: true,
+          level: true,
         }
       });
 
