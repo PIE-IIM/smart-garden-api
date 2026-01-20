@@ -18,6 +18,7 @@ model User {
   comments        Comment[]
   gardenData      GardenData?
   gardenVegetable GardenVegetable[]
+  gardenSpaces    GardenSpace[]
   posts           Post[]            @relation("UserPosts")
   postComments    PostComment[]     @relation("UserPostComments")
   postLikes       PostLike[]        @relation("UserPostLikes")
@@ -43,6 +44,20 @@ model GardenVegetable {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   tasks       Task[]
+}
+
+
+
+model GardenSpace {
+  id        String   @id @default(uuid())
+  spaceName String
+  area      Json
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model GardenData {
