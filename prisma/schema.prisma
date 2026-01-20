@@ -117,7 +117,7 @@ model TopicTag {
 
 model Comment {
   id        String   @id @default(uuid())
-  content   String   @db.Text
+  content   String
   createdAt DateTime @default(now())
   topicId   String
   authorId  String
