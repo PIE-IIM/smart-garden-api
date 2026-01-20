@@ -9,22 +9,22 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String?
-  level     String?
-  createdAt DateTime @default(now())
-
-  Token           Token?
-  gardenVegetable GardenVegetable[]
-  gardenData GardenData?
-  Task            Task[]
-  topics          Topic[]
+  id              String            @id @default(uuid())
+  email           String            @unique
+  password        String
+  name            String?
+  createdAt       DateTime          @default(now())
+  level           String?
   comments        Comment[]
+  gardenData      GardenData?
+  gardenVegetable GardenVegetable[]
+  gardenSpaces    GardenSpace[]
   posts           Post[]            @relation("UserPosts")
-  postLikes       PostLike[]        @relation("UserPostLikes")
   postComments    PostComment[]     @relation("UserPostComments")
+  postLikes       PostLike[]        @relation("UserPostLikes")
+  Task            Task[]
+  Token           Token?
+  topics          Topic[]
   tutorials       Tutorial[]        @relation("UserTutorials")
   tutorialLikes   TutorialLike[]    @relation("UserTutorialLikes")
 }
@@ -33,80 +33,84 @@ model Token {
   id        String   @id
   createdAt DateTime @default(now())
   expireAt  DateTime
-
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model GardenVegetable {
   id          String   @id @default(uuid())
-  // vegetable   Vegetable @relation(fields: [vegetableId], references: [id])
   vegetableId String
   createdAt   DateTime @default(now())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+}
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String
+
+
+model GardenSpace {
+  id        String   @id @default(uuid())
+  spaceName String
+  area      Json
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model GardenData {
-  id          String   @id @default(uuid())
-  name String
+  id       String @id @default(uuid())
+  name     String
   location String
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @unique
+  userId   String @unique
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks    Task[]
 }
 
 model Task {
-  id          String       @id @default(uuid())
-  title       String
-  description String?
-  category    String?
-  plant       String?
-  dueDate     DateTime?
-  priority    TaskPriority @default(MEDIUM)
-  reminder    Boolean      @default(false)
-  createdAt   DateTime     @default(now())
-
-  // Relations
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String
-}
-
-enum TaskPriority {
-  LOW
-  MEDIUM
-  HIGH
+  id             String           @id @default(uuid())
+  title          String
+  description    String?
+  category       String?
+  plant          GardenVegetable? @relation(fields: [plantId], references: [id])
+  plantId        String?
+  gardenData     GardenData?      @relation(fields: [gardenDataId], references: [id])
+  gardenDataId   String?
+  dueDate        DateTime?
+  priority       TaskPriority     @default(MEDIUM)
+  reminder       Boolean          @default(false)
+  completed      Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ForumTag {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
-
-  topics TopicTag[]
+  id        String     @id @default(uuid())
+  name      String     @unique
+  createdAt DateTime   @default(now())
+  topics    TopicTag[]
 }
 
 model Topic {
-  id        String   @id @default(uuid())
+  id        String     @id @default(uuid())
   title     String
-  content   String   @db.Text
-  viewCount Int      @default(0)
-  createdAt DateTime @default(now())
-
-  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  authorId String
-
-  tags     TopicTag[]
-  comments Comment[]
+  content   String     @db.Text
+  viewCount Int        @default(0)
+  createdAt DateTime   @default(now())
+  authorId  String
+  comments  Comment[]
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  tags      TopicTag[]
 }
 
 model TopicTag {
-  topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
   topicId String
-
-  tag   ForumTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  tagId String
+  tagId   String
+  tag     ForumTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  topic   Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
   @@id([topicId, tagId])
 }
@@ -115,39 +119,34 @@ model Comment {
   id        String   @id @default(uuid())
   content   String   @db.Text
   createdAt DateTime @default(now())
-
-  topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  topicId String
-
-  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  authorId String
+  topicId   String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
 }
 
 model Post {
-  id       String   @id @default(cuid())
-  content  String   @db.Text
-  images   String[]
-  authorId String
-  author   User     @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
-
-  likes    PostLike[]
-  comments PostComment[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String        @id @default(cuid())
+  content   String        @db.Text
+  images    String[]
+  authorId  String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  author    User          @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
+  comments  PostComment[]
+  likes     PostLike[]
 
   @@index([authorId])
   @@index([createdAt])
 }
 
 model PostLike {
-  id     String @id @default(cuid())
-  postId String
-  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId String
-  user   User   @relation("UserPostLikes", fields: [userId], references: [id], onDelete: Cascade)
-
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
   createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation("UserPostLikes", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
   @@index([postId])
@@ -155,18 +154,85 @@ model PostLike {
 }
 
 model PostComment {
-  id       String @id @default(cuid())
-  content  String @db.Text
-  postId   String
-  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  authorId String
-  author   User   @relation("UserPostComments", fields: [authorId], references: [id], onDelete: Cascade)
-
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  postId    String
+  authorId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  author    User     @relation("UserPostComments", fields: [authorId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([postId])
   @@index([authorId])
+}
+
+model Tutorial {
+  id            String           @id @default(cuid())
+  title         String
+  description   String?          @db.Text
+  type          TutorialType
+  category      TutorialCategory
+  videoUrl      String?
+  videoDuration Int?
+  thumbnail     String?
+  content       String?          @db.Text
+  images        String[]
+  authorId      String
+  viewCount     Int              @default(0)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  author        User             @relation("UserTutorials", fields: [authorId], references: [id], onDelete: Cascade)
+  likes         TutorialLike[]
+
+  @@index([authorId])
+  @@index([type])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model TutorialLike {
+  id         String   @id @default(cuid())
+  tutorialId String
+  userId     String
+  createdAt  DateTime @default(now())
+  tutorial   Tutorial @relation(fields: [tutorialId], references: [id], onDelete: Cascade)
+  user       User     @relation("UserTutorialLikes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tutorialId, userId])
+  @@index([tutorialId])
+  @@index([userId])
+}
+
+model sensor_readings {
+  id            BigInt    @id @default(autoincrement())
+  sensor_id     String    @db.Uuid
+  value_numeric Float
+  raw_value     Int?
+  voltage       Float?
+  recorded_at   DateTime? @db.Timestamptz(6)
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  sensors       sensors   @relation(fields: [sensor_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([sensor_id, created_at(sort: Desc)], map: "idx_readings_sensor_created")
+  @@index([sensor_id, recorded_at(sort: Desc)], map: "idx_readings_sensor_recorded")
+}
+
+model sensors {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String
+  type            String
+  unit            String            @default("%")
+  is_active       Boolean           @default(true)
+  write_token     String?           @unique
+  created_at      DateTime          @default(now()) @db.Timestamptz(6)
+  sensor_readings sensor_readings[]
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
 }
 
 enum TutorialType {
@@ -178,47 +244,4 @@ enum TutorialCategory {
   ASTUCES
   DIY
   TECHNIQUES
-}
-
-model Tutorial {
-  id          String           @id @default(cuid())
-  title       String
-  description String?          @db.Text
-  type        TutorialType
-  category    TutorialCategory
-
-  videoUrl      String?
-  videoDuration Int?
-  thumbnail     String?
-
-  content String?  @db.Text
-  images  String[]
-
-  authorId String
-  author   User   @relation("UserTutorials", fields: [authorId], references: [id], onDelete: Cascade)
-
-  likes     TutorialLike[]
-  viewCount Int            @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([authorId])
-  @@index([type])
-  @@index([category])
-  @@index([createdAt])
-}
-
-model TutorialLike {
-  id         String   @id @default(cuid())
-  tutorialId String
-  tutorial   Tutorial @relation(fields: [tutorialId], references: [id], onDelete: Cascade)
-  userId     String
-  user       User     @relation("UserTutorialLikes", fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([tutorialId, userId])
-  @@index([tutorialId])
-  @@index([userId])
 }

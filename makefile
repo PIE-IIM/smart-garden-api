@@ -8,6 +8,11 @@ migrate:
 reset-db:
 	npx prisma migrate reset
 
+sync:
+	npm install
+	npx prisma migrate deploy
+	npx prisma generate
+
 clear-migrations:
 	rm -rf prisma/migrations
 
