@@ -86,6 +86,13 @@ export class GardenController {
 
   }
 
+  async gardenSpace(req: AuthRequest, res: Response) {
+    const rows = await this.prisma.gardenSpace.findMany({
+      where: { userId: req.user!.userId },
+    });
+    res.status(200).json(rows);
+  }
+
   // GET /api/user/vegetables
   async list(req: AuthRequest, res: Response) {
     const rows = await this.prisma.gardenVegetable.findMany({
