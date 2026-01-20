@@ -3,6 +3,14 @@ import { Response } from "express";
 import { Utils } from "../utils";
 import { AuthRequest } from "../middleware/auth.middleware";
 
+
+
+export interface GardenSpace {
+  id?: string,
+  name: string,
+  area: object[],
+}
+
 export class GardenController {
   constructor(private prisma: PrismaClient, private utils: Utils) { }
 
@@ -49,6 +57,63 @@ export class GardenController {
     }
   }
 
+  //POST: /api/gardenspace
+  async addGardenSpace(req: AuthRequest, res: Response) {
+    const { gardenSpaces } = req.body
+    const id = req.user!.userId;
+
+    if (!id || !gardenSpaces) {
+      res.status(400).json({ message: "Missing fields" });
+      return
+    }
+
+    const gardenSpacesDb = await this.prisma.gardenSpace.findMany({
+      where: { userId: req.user!.userId },
+    });
+
+
+    try {
+      await Promise.all(
+        gardenSpaces.map((gardenSpace: GardenSpace) => {
+
+          if (gardenSpace.id) {
+            return this.prisma.gardenSpace.update({
+              where: { id: gardenSpace.id },
+              data: {
+                userId: req.user!.userId,
+                spaceName: gardenSpace.name,
+                area: gardenSpace.area
+              }
+            })
+          } else {
+            return this.prisma.gardenSpace.create({
+              data: {
+                userId: req.user!.userId,
+                spaceName: gardenSpace.name,
+                area: gardenSpace.area
+              }
+            })
+          }
+
+
+        }
+        )
+      )
+
+      res.status(201).json({ message: 'ok' })
+    } catch {
+      res.status(500).json({ message: "Error." });
+    }
+
+  }
+
+  async gardenSpace(req: AuthRequest, res: Response) {
+    const rows = await this.prisma.gardenSpace.findMany({
+      where: { userId: req.user!.userId },
+    });
+    res.status(200).json(rows);
+  }
+
   // GET /api/user/vegetables
   async list(req: AuthRequest, res: Response) {
     const rows = await this.prisma.gardenVegetable.findMany({
@@ -60,7 +125,6 @@ export class GardenController {
   // DELETE /api/user/vegetable/:id
   async remove(req: AuthRequest, res: Response) {
     try {
-      // Vérifier que le légume existe et appartient à l'utilisateur
       const gardenVegetable = await this.prisma.gardenVegetable.findUnique({
         where: { id: req.params.id },
       });
@@ -75,7 +139,6 @@ export class GardenController {
         return;
       }
 
-      // Supprimer le légume
       await this.prisma.gardenVegetable.delete({
         where: { id: req.params.id },
       });

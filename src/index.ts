@@ -58,6 +58,14 @@ app.post("/api/onboarding", authenticateToken, (req, res) =>
   gardenController.addOnboarding(req, res)
 )
 
+app.post("/api/gardenspace", authenticateToken, (req, res) =>
+  gardenController.addGardenSpace(req, res)
+)
+
+app.get("/api/gardenspace", authenticateToken, (req, res) =>
+  gardenController.gardenSpace(req, res)
+)
+
 app.delete("/api/user/vegetable/:id", authenticateToken, (req, res) =>
   gardenController.remove(req, res)
 );

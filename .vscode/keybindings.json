@@ -1,0 +1,27 @@
+[
+    {
+        "key": "cmd+shift+d",
+        "command": "workbench.action.tasks.runTask",
+        "args": "Start Dev Server"
+    },
+    {
+        "key": "cmd+shift+m",
+        "command": "workbench.action.tasks.runTask",
+        "args": "Create Migration"
+    },
+    {
+        "key": "cmd+shift+r",
+        "command": "workbench.action.tasks.runTask",
+        "args": "Reset Database"
+    },
+    {
+        "key": "cmd+shift+s",
+        "command": "workbench.action.tasks.runTask",
+        "args": "Sync After Pull"
+    },
+    {
+        "key": "cmd+shift+p",
+        "command": "workbench.action.tasks.runTask",
+        "args": "Prisma Studio"
+    }
+]
