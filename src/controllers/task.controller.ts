@@ -29,13 +29,17 @@ export class TaskController {
           title,
           description,
           category,
-          plantId: plantId || null,
           dueDate: dueDate ? new Date(dueDate) : undefined,
           priority,
           reminder,
           user: {
             connect: { id: req.user!.userId },
           },
+          ...(plantId && {
+            plant: {
+              connect: { id: plantId }
+            }
+          })
         },
       });
 
@@ -77,10 +81,14 @@ export class TaskController {
           title,
           description,
           category,
-          plantId: plantId || null,
           dueDate: dueDate ? new Date(dueDate) : undefined,
           priority,
           reminder,
+          ...(plantId !== undefined && {
+            plant: plantId
+              ? { connect: { id: plantId } }
+              : { disconnect: true }
+          })
         },
       });
 
@@ -117,6 +125,28 @@ export class TaskController {
         },
       });
       res.status(200).json({ tasks });
+    } catch (e: any) {
+      res.status(500).json({ message: "Erreur serveur.", error: e.message });
+    }
+  }
+
+  // PATCH /api/task/:id/toggle
+  async toggle(req: AuthRequest, res: Response) {
+    const { id } = req.params;
+    
+    try {
+      const task = await this.prisma.task.findUnique({ where: { id } });
+      if (!task || task.userId !== req.user!.userId) {
+        res.status(404).json({ message: "Tâche non trouvée ou non autorisée." });
+        return;
+      }
+
+      const updatedTask = await this.prisma.task.update({
+        where: { id },
+        data: { completed: !task.completed }
+      });
+
+      res.status(200).json({ success: true, task: updatedTask });
     } catch (e: any) {
       res.status(500).json({ message: "Erreur serveur.", error: e.message });
     }
