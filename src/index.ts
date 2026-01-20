@@ -70,6 +70,14 @@ app.delete("/api/user/vegetable/:id", authenticateToken, (req, res) =>
   gardenController.remove(req, res)
 );
 
+app.get("/api/garden", authenticateToken, (req, res) =>
+  gardenController.getGardenData(req, res)
+);
+
+app.put("/api/garden", authenticateToken, (req, res) =>
+  gardenController.updateGardenData(req, res)
+);
+
 // ===== SENSORS =====
 app.use("/api", sensorController);
 

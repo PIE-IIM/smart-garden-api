@@ -114,6 +114,58 @@ export class GardenController {
     res.status(200).json(rows);
   }
 
+  // GET /api/garden - GardenData 
+  async getGardenData(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user!.userId;
+
+      const garden = await this.prisma.gardenData.findUnique({
+        where: { userId },
+        select: {
+          id: true,
+          name: true,
+          location: true,
+          userId: true,
+        },
+      });
+
+      res.status(200).json(garden ?? null);
+    } catch (e: any) {
+      res.status(500).json({ message: "Erreur serveur", error: e.message });
+    }
+  }
+
+  // PUT /api/garden GardenData (name/location)
+  async updateGardenData(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      const { name, location } = req.body as { name?: string; location?: string };
+
+      const garden = await this.prisma.gardenData.upsert({
+        where: { userId },
+        update: {
+          name: name ?? undefined,
+          location: location ?? undefined,
+        },
+        create: {
+          name: name ?? "Mon jardin",
+          location: location ?? "",
+          userId,
+        },
+        select: {
+          id: true,
+          name: true,
+          location: true,
+          userId: true,
+        },
+      });
+
+      res.status(200).json(garden);
+    } catch (e: any) {
+      res.status(500).json({ message: "Erreur serveur", error: e.message });
+    }
+  }
+
   // GET /api/user/vegetables
   async list(req: AuthRequest, res: Response) {
     const rows = await this.prisma.gardenVegetable.findMany({
