@@ -6,6 +6,7 @@ import { AuthRequest } from "../middleware/auth.middleware";
 
 
 export interface GardenSpace {
+  id?: string,
   name: string,
   area: object[],
 }
@@ -66,16 +67,36 @@ export class GardenController {
       return
     }
 
+    const gardenSpacesDb = await this.prisma.gardenSpace.findMany({
+      where: { userId: req.user!.userId },
+    });
+
+
     try {
       await Promise.all(
-        gardenSpaces.map((gardenSpace: GardenSpace) =>
-          this.prisma.gardenSpace.create({
-            data: {
-              userId: req.user!.userId,
-              spaceName: gardenSpace.name,
-              area: gardenSpace.area
-            }
-          })
+        gardenSpaces.map((gardenSpace: GardenSpace) => {
+
+          if (gardenSpace.id) {
+            return this.prisma.gardenSpace.update({
+              where: { id: gardenSpace.id },
+              data: {
+                userId: req.user!.userId,
+                spaceName: gardenSpace.name,
+                area: gardenSpace.area
+              }
+            })
+          } else {
+            return this.prisma.gardenSpace.create({
+              data: {
+                userId: req.user!.userId,
+                spaceName: gardenSpace.name,
+                area: gardenSpace.area
+              }
+            })
+          }
+
+
+        }
         )
       )
 
