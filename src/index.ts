@@ -98,6 +98,10 @@ app.delete("/api/task/:id", authenticateToken, (req, res) =>
   taskController.remove(req, res)
 );
 
+app.patch("/api/task/:id/toggle", authenticateToken, (req, res) =>
+  taskController.toggle(req, res)
+);
+
 // ===== FORUM / TOPICS =====
 app.get("/api/tags", authenticateToken, (req, res) =>
   socialController.getTags(req, res)
