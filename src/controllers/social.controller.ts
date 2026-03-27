@@ -542,6 +542,21 @@ export class SocialController {
         }
     }
 
+    // POST /api/tutorial/:id/view - Incrémenter les vues
+    async incrementTutorialView(req: AuthRequest, res: Response) {
+        const { id } = req.params;
+
+        try {
+            await this.prisma.tutorial.update({
+                where: { id },
+                data: { viewCount: { increment: 1 } }
+            });
+            res.status(200).json({ message: "Vue incrémentée." });
+        } catch (e: any) {
+            res.status(500).json({ message: "Erreur serveur.", error: e.message });
+        }
+    }
+
     // POST /api/tutorial/:id/like - Liker/Unliker un tutoriel
     async toggleTutorialLike(req: AuthRequest, res: Response) {
         const { id } = req.params;

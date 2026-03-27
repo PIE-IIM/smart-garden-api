@@ -177,6 +177,10 @@ app.get("/api/tutorial/:id", authenticateToken, (req, res) =>
   socialController.getTutorial(req, res)
 );
 
+app.post("/api/tutorial/:id/view", authenticateToken, (req, res) =>
+  socialController.incrementTutorialView(req, res)
+);
+
 app.post("/api/tutorial/:id/like", authenticateToken, (req, res) =>
   socialController.toggleTutorialLike(req, res)
 );
