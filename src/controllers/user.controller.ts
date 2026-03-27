@@ -153,6 +153,11 @@ export class UserController {
         }
       }
 
+
+      const hashedPassword = password
+        ? await bcrypt.hash(password, 10)
+        : undefined;
+
       const updatedUser = await this.prisma.user.update({
         where: { id: userId },
         data: {
