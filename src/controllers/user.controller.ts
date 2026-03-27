@@ -142,10 +142,6 @@ export class UserController {
     const userId = req.user!.userId;
 
     try {
-      let hashedPassword = undefined;
-      if (password) {
-          hashedPassword = await bcrypt.hash(password, 10);
-      }
       if (email) {
         const existingUser = await this.prisma.user.findUnique({
           where: { email }
