@@ -138,10 +138,14 @@ export class UserController {
 
   // PUT /api/user - Mettre à jour le profil utilisateur
   async updateUser(req: AuthRequest, res: Response) {
-    const { name, email, phone, bio, level, isPrivate } = req.body;
+    const { name, email, phone, bio, level, isPrivate, password } = req.body;
     const userId = req.user!.userId;
 
     try {
+      let hashedPassword = undefined;
+      if (password) {
+          hashedPassword = await bcrypt.hash(password, 10);
+      }
       if (email) {
         const existingUser = await this.prisma.user.findUnique({
           where: { email }
@@ -160,6 +164,7 @@ export class UserController {
           email: email || undefined,
           level: level ?? undefined,
           isPrivate: isPrivate !== undefined ? isPrivate : undefined,
+          ...(hashedPassword ? { password: hashedPassword } : {}),
         },
         select: {
           id: true,
