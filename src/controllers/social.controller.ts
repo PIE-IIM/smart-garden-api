@@ -65,12 +65,31 @@ export class SocialController {
     // GET /api/topic/:id - Récupérer un topic spécifique avec commentaires
     async getTopic(req: AuthRequest, res: Response) {
         const { id } = req.params;
+        const userId = req.user!.userId;
 
         try {
-            await this.prisma.topic.update({
-                where: { id },
-                data: { viewCount: { increment: 1 } }
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            const lastView = await this.prisma.topicView.findUnique({
+                where: { topicId_userId: { topicId: id, userId } }
             });
+
+            if (!lastView || lastView.createdAt < twentyFourHoursAgo) {
+                await this.prisma.topic.update({
+                    where: { id },
+                    data: { viewCount: { increment: 1 } }
+                });
+                
+                if (lastView) {
+                    await this.prisma.topicView.update({
+                        where: { id: lastView.id },
+                        data: { createdAt: new Date() }
+                    });
+                } else {
+                    await this.prisma.topicView.create({
+                        data: { topicId: id, userId }
+                    });
+                }
+            }
 
             const topic = await this.prisma.topic.findUnique({
                 where: { id },
@@ -236,6 +255,42 @@ export class SocialController {
             });
 
             res.status(201).json(post);
+        } catch (e: any) {
+            res.status(500).json({ message: "Erreur serveur.", error: e.message });
+        }
+    }
+
+    // POST /api/post/:id/view - Incrémenter les vues d'un post
+    async incrementPostView(req: AuthRequest, res: Response) {
+        const { id } = req.params;
+        const userId = req.user!.userId;
+
+        try {
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            const lastView = await this.prisma.postView.findUnique({
+                where: { postId_userId: { postId: id, userId } }
+            });
+
+            if (!lastView || lastView.createdAt < twentyFourHoursAgo) {
+                await this.prisma.post.update({
+                    where: { id },
+                    data: { viewCount: { increment: 1 } }
+                });
+                
+                if (lastView) {
+                    await this.prisma.postView.update({
+                        where: { id: lastView.id },
+                        data: { createdAt: new Date() }
+                    });
+                } else {
+                    await this.prisma.postView.create({
+                        data: { postId: id, userId }
+                    });
+                }
+                res.status(200).json({ message: "Vue incrémentée." });
+            } else {
+                res.status(200).json({ message: "Déjà vu récemment." });
+            }
         } catch (e: any) {
             res.status(500).json({ message: "Erreur serveur.", error: e.message });
         }
@@ -507,11 +562,29 @@ export class SocialController {
 
         try {
             const userId = req.user!.userId;
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-            await this.prisma.tutorial.update({
-                where: { id },
-                data: { viewCount: { increment: 1 } }
+            const lastView = await this.prisma.tutorialView.findUnique({
+                where: { tutorialId_userId: { tutorialId: id, userId } }
             });
+
+            if (!lastView || lastView.createdAt < twentyFourHoursAgo) {
+                await this.prisma.tutorial.update({
+                    where: { id },
+                    data: { viewCount: { increment: 1 } }
+                });
+                
+                if (lastView) {
+                    await this.prisma.tutorialView.update({
+                        where: { id: lastView.id },
+                        data: { createdAt: new Date() }
+                    });
+                } else {
+                    await this.prisma.tutorialView.create({
+                        data: { tutorialId: id, userId }
+                    });
+                }
+            }
 
             const tutorial = await this.prisma.tutorial.findUnique({
                 where: { id },
@@ -545,13 +618,34 @@ export class SocialController {
     // POST /api/tutorial/:id/view - Incrémenter les vues
     async incrementTutorialView(req: AuthRequest, res: Response) {
         const { id } = req.params;
+        const userId = req.user!.userId;
 
         try {
-            await this.prisma.tutorial.update({
-                where: { id },
-                data: { viewCount: { increment: 1 } }
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            const lastView = await this.prisma.tutorialView.findUnique({
+                where: { tutorialId_userId: { tutorialId: id, userId } }
             });
-            res.status(200).json({ message: "Vue incrémentée." });
+
+            if (!lastView || lastView.createdAt < twentyFourHoursAgo) {
+                await this.prisma.tutorial.update({
+                    where: { id },
+                    data: { viewCount: { increment: 1 } }
+                });
+                
+                if (lastView) {
+                    await this.prisma.tutorialView.update({
+                        where: { id: lastView.id },
+                        data: { createdAt: new Date() }
+                    });
+                } else {
+                    await this.prisma.tutorialView.create({
+                        data: { tutorialId: id, userId }
+                    });
+                }
+                res.status(200).json({ message: "Vue incrémentée." });
+            } else {
+                res.status(200).json({ message: "Déjà vu récemment." });
+            }
         } catch (e: any) {
             res.status(500).json({ message: "Erreur serveur.", error: e.message });
         }
