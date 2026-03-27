@@ -160,6 +160,10 @@ app.delete("/api/post/:id", authenticateToken, (req, res) =>
   socialController.deletePost(req, res)
 );
 
+app.post("/api/post/:id/view", authenticateToken, (req, res) =>
+  socialController.incrementPostView(req, res)
+);
+
 app.get("/api/user/posts", authenticateToken, (req, res) =>
   socialController.getUserPosts(req, res)
 );

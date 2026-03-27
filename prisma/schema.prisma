@@ -27,6 +27,9 @@ model User {
   topics          Topic[]
   tutorials       Tutorial[]        @relation("UserTutorials")
   tutorialLikes   TutorialLike[]    @relation("UserTutorialLikes")
+  topicViews      TopicView[]
+  tutorialViews   TutorialView[]
+  postViews       PostView[]
 }
 
 model Token {
@@ -104,6 +107,18 @@ model Topic {
   comments  Comment[]
   author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
   tags      TopicTag[]
+  views     TopicView[]
+}
+
+model TopicView {
+  id        String   @id @default(cuid())
+  topicId   String
+  userId    String
+  createdAt DateTime @default(now())
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([topicId, userId])
 }
 
 model TopicTag {
@@ -135,9 +150,22 @@ model Post {
   author    User          @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
   comments  PostComment[]
   likes     PostLike[]
+  viewCount Int           @default(0)
+  views     PostView[]
 
   @@index([authorId])
   @@index([createdAt])
+}
+
+model PostView {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
 }
 
 model PostLike {
@@ -184,11 +212,23 @@ model Tutorial {
   updatedAt     DateTime         @updatedAt
   author        User             @relation("UserTutorials", fields: [authorId], references: [id], onDelete: Cascade)
   likes         TutorialLike[]
+  views         TutorialView[]
 
   @@index([authorId])
   @@index([type])
   @@index([category])
   @@index([createdAt])
+}
+
+model TutorialView {
+  id         String   @id @default(cuid())
+  tutorialId String
+  userId     String
+  createdAt  DateTime @default(now())
+  tutorial   Tutorial @relation(fields: [tutorialId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tutorialId, userId])
 }
 
 model TutorialLike {
