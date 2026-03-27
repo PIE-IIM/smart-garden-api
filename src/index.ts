@@ -41,6 +41,10 @@ app.put("/api/user", authenticateToken, async (req, res) => {
   await userController.updateUser(req, res);
 });
 
+app.get("/api/user/:id/profile", authenticateToken, async (req, res) => {
+  await userController.getPublicProfile(req, res);
+});
+
 app.get("/api/stats", authenticateToken, async (req, res) => {
   await socialController.getUserStats(req, res);
 });

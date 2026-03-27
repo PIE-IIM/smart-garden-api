@@ -52,7 +52,7 @@ export class UserController {
 
     const user = await this.prisma.user.findUnique({
       where: { id: tokenData.userId },
-      select: { id: true, name: true, email: true, level: true },
+      select: { id: true, name: true, email: true, level: true, isPrivate: true },
     });
 
     if (!user) {
@@ -138,7 +138,7 @@ export class UserController {
 
   // PUT /api/user - Mettre à jour le profil utilisateur
   async updateUser(req: AuthRequest, res: Response) {
-    const { name, email, phone, bio, level } = req.body;
+    const { name, email, phone, bio, level, isPrivate } = req.body;
     const userId = req.user!.userId;
 
     try {
@@ -159,18 +159,61 @@ export class UserController {
           name: name || undefined,
           email: email || undefined,
           level: level ?? undefined,
+          isPrivate: isPrivate !== undefined ? isPrivate : undefined,
         },
         select: {
           id: true,
           name: true,
           email: true,
           level: true,
+          isPrivate: true,
         }
       });
 
       res.status(200).json(updatedUser);
     } catch (e: any) {
       res.status(500).json({ message: "Erreur serveur.", error: e.message });
+    }
+  }
+
+  // GET /api/user/:id/profile - Voir le profil public
+  async getPublicProfile(req: AuthRequest, res: Response) {
+    const { id } = req.params;
+    try {
+      const userProfile = await this.prisma.user.findUnique({
+        where: { id },
+        include: {
+          _count: {
+            select: { topics: true, posts: true, gardenVegetable: true, tutorials: true, comments: true }
+          }
+        }
+      });
+
+      if (!userProfile) {
+        return res.status(404).json({ message: "Utilisateur non trouvé." });
+      }
+
+      if (userProfile.isPrivate && req.user?.userId !== id) {
+        return res.status(200).json({
+          id: userProfile.id,
+          name: userProfile.name,
+          level: userProfile.level,
+          createdAt: userProfile.createdAt,
+          isPrivate: true,
+        });
+      }
+
+      return res.status(200).json({
+        id: userProfile.id,
+        name: userProfile.name,
+        level: userProfile.level,
+        createdAt: userProfile.createdAt,
+        isPrivate: false,
+        stats: userProfile._count,
+      });
+
+    } catch (e: any) {
+      return res.status(500).json({ message: "Erreur serveur.", error: e.message });
     }
   }
 }
