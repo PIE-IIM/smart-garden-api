@@ -15,6 +15,7 @@ model User {
   name            String?
   createdAt       DateTime          @default(now())
   level           String?
+  isPrivate       Boolean           @default(false)
   comments        Comment[]
   gardenData      GardenData?
   gardenVegetable GardenVegetable[]
