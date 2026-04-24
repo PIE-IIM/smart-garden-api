@@ -272,7 +272,7 @@ export class UserController {
           pass: process.env.SMTP_PASS,
         },
         family: 4, // Force Node à utiliser IPv4 au lieu d'IPv6
-      });
+      } as any);
 
       const mailOptions = {
         from: `"Smart Garden" <${process.env.SMTP_USER || "noreply@smartgarden.com"}>`,
