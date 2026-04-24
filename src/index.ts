@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import dotenv from "dotenv";
+import dns from "dns";
 import { PrismaClient } from "@prisma/client";
 import { UserController } from "./controllers/user.controller";
 import { GardenController } from "./controllers/garden.controller";
@@ -11,6 +12,9 @@ import { TaskController } from "./controllers/task.controller";
 import { SocialController } from "./controllers/social.controller";
 
 dotenv.config();
+
+// Force Node.js >= 17 to use IPv4 instead of IPv6 pour éviter l'erreur ENETUNREACH sur Railway
+dns.setDefaultResultOrder('ipv4first');
 
 const app = express();
 const prisma = new PrismaClient();
