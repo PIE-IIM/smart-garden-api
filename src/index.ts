@@ -135,6 +135,10 @@ app.delete("/api/topic/:id", authenticateToken, (req, res) => {
   socialController.deleteTopic(req, res);
 });
 
+app.put("/api/topic/:id", authenticateToken, (req, res) => {
+  socialController.updateTopic(req, res);
+});
+
 app.get("/api/user/topics", authenticateToken, (req, res) =>
   socialController.getUserTopics(req, res)
 );
@@ -167,6 +171,10 @@ app.get("/api/post/:id/comments", authenticateToken, (req, res) =>
 app.delete("/api/post/:id", authenticateToken, (req, res) =>
   socialController.deletePost(req, res)
 );
+
+app.put("/api/post/:id", authenticateToken, (req, res) => {
+  socialController.updatePost(req, res);
+});
 
 app.post("/api/post/:id/view", authenticateToken, (req, res) =>
   socialController.incrementPostView(req, res)
