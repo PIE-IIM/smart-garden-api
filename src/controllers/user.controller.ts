@@ -241,13 +241,15 @@ export class UserController {
     }
 
     try {
+      console.log(`Demande de mot de passe oublié reçue pour l'email: ${email}`);
+
       const user = await this.prisma.user.findUnique({ where: { email } });
       if (!user) {
-        // Return 200 to prevent email enumeration
+        console.log(`Utilisateur non trouvé pour l'email: ${email}`);
         return res.status(200).json({ message: "Si ce compte existe, un email a été envoyé." });
       }
 
-      // Generate a random 8-character password
+      console.log(`Utilisateur trouvé, génération du mot de passe...`);
       const tempPassword = Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
@@ -255,8 +257,9 @@ export class UserController {
         where: { email },
         data: { password: hashedPassword },
       });
+      console.log(`Mot de passe mis à jour en base de données.`);
 
-      // Email transport configuration
+      console.log(`Configuration SMTP - Host: ${process.env.SMTP_HOST}, Port: ${process.env.SMTP_PORT}, User: ${process.env.SMTP_USER}`);
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || "smtp.gmail.com",
         port: Number(process.env.SMTP_PORT) || 587,
@@ -274,15 +277,22 @@ export class UserController {
         text: `Bonjour ${user.name || "Jardinier"},\n\nVous avez demandé la réinitialisation de votre mot de passe.\n\nVoici votre nouveau mot de passe temporaire : ${tempPassword}\n\nNous vous conseillons de le modifier rapidement depuis votre profil.\n\nL'équipe Smart Garden.`,
       };
 
-      // If no SMTP configured, log to console for dev mode
       if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
         console.warn("\n=== AVERTISSEMENT SMTP NON CONFIGURÉ ===");
         console.warn(`Email qui aurait été envoyé à: ${email}`);
         console.warn(`Nouveau mot de passe généré: ${tempPassword}`);
         console.warn("========================================\n");
       } else {
-        await transporter.sendMail(mailOptions);
+        console.log(`Tentative d'envoi de l'email via nodemailer...`);
+        try {
+          const info = await transporter.sendMail(mailOptions);
+          console.log(`Email envoyé avec succès ! Info:`, info.response);
+        } catch (mailError) {
+          console.error(`Échec critique lors de l'envoi de l'email :`, mailError);
+        }
       }
+
+      console.log(`Fin du traitement de mot de passe oublié.`);
 
       return res.status(200).json({ message: "Si ce compte existe, un email a été envoyé." });
     } catch (error: any) {
