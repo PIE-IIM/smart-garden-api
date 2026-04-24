@@ -189,6 +189,12 @@ export class UserController {
       const userProfile = await this.prisma.user.findUnique({
         where: { id },
         include: {
+          gardenData: {
+            select: { name: true, location: true }
+          },
+          gardenSpaces: {
+            select: { spaceName: true }
+          },
           _count: {
             select: { topics: true, posts: true, gardenVegetable: true, tutorials: true, comments: true }
           }
@@ -216,6 +222,8 @@ export class UserController {
         createdAt: userProfile.createdAt,
         isPrivate: false,
         stats: userProfile._count,
+        garden: userProfile.gardenData,
+        spaces: userProfile.gardenSpaces,
       });
 
     } catch (e: any) {
