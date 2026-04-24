@@ -233,6 +233,10 @@ app.get("/api/categories", authenticateToken, (req, res) => {
   socialController.getCategories(req, res);
 });
 
+app.post("/api/auth/forgot-password", (req, res) => {
+  userController.forgotPassword(req, res);
+});
+
 const PORT = process.env.PORT || 3000;
 app
   .listen(PORT, () => {
