@@ -209,6 +209,10 @@ app.delete("/api/tutorial/:id", authenticateToken, (req, res) =>
   socialController.deleteTutorial(req, res)
 );
 
+app.put("/api/tutorial/:id", authenticateToken, (req, res) => {
+  socialController.updateTutorial(req, res);
+});
+
 app.get("/api/user/tutorials", authenticateToken, (req, res) => {
   socialController.getUserTutorials(req, res);
 });
@@ -227,6 +231,10 @@ app.get("/api/user/:id/vegetables", authenticateToken, (req, res) => {
 
 app.get("/api/categories", authenticateToken, (req, res) => {
   socialController.getCategories(req, res);
+});
+
+app.post("/api/auth/forgot-password", (req, res) => {
+  userController.forgotPassword(req, res);
 });
 
 const PORT = process.env.PORT || 3000;

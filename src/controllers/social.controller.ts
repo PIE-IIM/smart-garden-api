@@ -824,6 +824,50 @@ export class SocialController {
         }
     }
 
+    // PUT /api/tutorial/:id - Modifier un tutoriel
+    async updateTutorial(req: AuthRequest, res: Response) {
+        const { id } = req.params;
+        const { title, description, content, category, type, videoUrl, videoDuration, thumbnail, images } = req.body;
+        const userId = req.user!.userId;
+
+        try {
+            const tutorial = await this.prisma.tutorial.findUnique({ where: { id } });
+
+            if (!tutorial) {
+                res.status(404).json({ message: "Tutoriel non trouvé." });
+                return;
+            }
+
+            if (tutorial.authorId !== userId) {
+                res.status(403).json({ message: "Non autorisé." });
+                return;
+            }
+
+            const updated = await this.prisma.tutorial.update({
+                where: { id },
+                data: {
+                    ...(title && { title }),
+                    ...(description && { description }),
+                    ...(content && { content }),
+                    ...(category && { category }),
+                    ...(type && { type }),
+                    ...(videoUrl && { videoUrl }),
+                    ...(videoDuration !== undefined && { videoDuration }),
+                    ...(thumbnail !== undefined && { thumbnail }),
+                    ...(images && { images })
+                },
+                include: {
+                    author: { select: { id: true, name: true, email: true } },
+                    _count: { select: { likes: true } }
+                }
+            });
+
+            res.status(200).json(updated);
+        } catch (e: any) {
+            res.status(500).json({ message: "Erreur serveur.", error: e.message });
+        }
+    }
+
     // GET /api/user/tutorials - Récupérer les tutoriels de l'utilisateur connecté
     async getUserTutorials(req: AuthRequest, res: Response) {
         try {

@@ -5,6 +5,7 @@ import { Login, Signup } from "../../models/models";
 import { Request, Response } from "express";
 import { Utils } from "../utils";
 import { AuthRequest } from "../middleware/auth.middleware";
+import nodemailer from "nodemailer";
 
 export class UserController {
   constructor(private prisma: PrismaClient, private utils: Utils) { }
@@ -229,6 +230,64 @@ export class UserController {
 
     } catch (e: any) {
       return res.status(500).json({ message: "Erreur serveur.", error: e.message });
+    }
+  }
+
+  // POST /api/auth/forgot-password
+  async forgotPassword(req: Request, res: Response) {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email requis" });
+    }
+
+    try {
+      const user = await this.prisma.user.findUnique({ where: { email } });
+      if (!user) {
+        // Return 200 to prevent email enumeration
+        return res.status(200).json({ message: "Si ce compte existe, un email a été envoyé." });
+      }
+
+      // Generate a random 8-character password
+      const tempPassword = Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+      await this.prisma.user.update({
+        where: { email },
+        data: { password: hashedPassword },
+      });
+
+      // Email transport configuration
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || "smtp.gmail.com",
+        port: Number(process.env.SMTP_PORT) || 587,
+        secure: process.env.SMTP_SECURE === "true",
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+
+      const mailOptions = {
+        from: `"Smart Garden" <${process.env.SMTP_USER || "noreply@smartgarden.com"}>`,
+        to: email,
+        subject: "Smart Garden - Votre nouveau mot de passe",
+        text: `Bonjour ${user.name || "Jardinier"},\n\nVous avez demandé la réinitialisation de votre mot de passe.\n\nVoici votre nouveau mot de passe temporaire : ${tempPassword}\n\nNous vous conseillons de le modifier rapidement depuis votre profil.\n\nL'équipe Smart Garden.`,
+      };
+
+      // If no SMTP configured, log to console for dev mode
+      if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        console.warn("\n=== AVERTISSEMENT SMTP NON CONFIGURÉ ===");
+        console.warn(`Email qui aurait été envoyé à: ${email}`);
+        console.warn(`Nouveau mot de passe généré: ${tempPassword}`);
+        console.warn("========================================\n");
+      } else {
+        await transporter.sendMail(mailOptions);
+      }
+
+      return res.status(200).json({ message: "Si ce compte existe, un email a été envoyé." });
+    } catch (error: any) {
+      console.error("Erreur forgotPassword:", error);
+      return res.status(500).json({ message: "Erreur serveur", error: error.message });
     }
   }
 }
