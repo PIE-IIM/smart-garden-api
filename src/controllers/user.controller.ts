@@ -259,15 +259,19 @@ export class UserController {
       });
       console.log(`Mot de passe mis à jour en base de données.`);
 
-      console.log(`Configuration SMTP - Host: ${process.env.SMTP_HOST}, Port: ${process.env.SMTP_PORT}, User: ${process.env.SMTP_USER}`);
+      console.log(`Configuration SMTP - User: ${process.env.SMTP_USER}`);
+      
+      // Configuration explicite pour forcer IPv4 (family: 4) car Railway n'a pas l'IPv6 activé
+      // On utilise le port 465 (SSL) qui est souvent moins capricieux que 587
       const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || "smtp.gmail.com",
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === "true",
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true, // SSL
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
         },
+        family: 4, // Force Node à utiliser IPv4 au lieu d'IPv6
       });
 
       const mailOptions = {
