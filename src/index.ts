@@ -201,6 +201,18 @@ app.get("/api/user/tutorials", authenticateToken, (req, res) =>
   socialController.getUserTutorials(req, res)
 );
 
+app.get("/api/user/:id/topics", authenticateToken, (req, res) =>
+  socialController.getPublicUserTopics(req, res)
+);
+
+app.get("/api/user/:id/posts", authenticateToken, (req, res) =>
+  socialController.getPublicUserPosts(req, res)
+);
+
+app.get("/api/user/:id/vegetables", authenticateToken, (req, res) =>
+  socialController.getPublicUserVegetables(req, res)
+);
+
 app.get("/api/categories", authenticateToken, (req, res) =>
   socialController.getCategories(req, res)
 );

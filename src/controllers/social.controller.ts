@@ -781,4 +781,69 @@ export class SocialController {
             res.status(500).json({ message: "Erreur serveur.", error: e.message });
         }
     }
+    // GET /api/user/:id/topics - Récupérer les topics d'un utilisateur
+    async getPublicUserTopics(req: AuthRequest, res: Response) {
+        const { id } = req.params;
+        try {
+            const user = await this.prisma.user.findUnique({ where: { id } });
+            if (!user) return res.status(404).json({ message: "Utilisateur non trouvé." });
+            if (user.isPrivate && req.user?.userId !== id) return res.status(403).json({ message: "Profil privé." });
+
+            const topics = await this.prisma.topic.findMany({
+                where: { authorId: id },
+                include: {
+                    author: { select: { id: true, name: true } },
+                    tags: { include: { tag: true } },
+                    _count: { select: { comments: true } }
+                },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            res.status(200).json(topics);
+        } catch (e: any) {
+            res.status(500).json({ message: "Erreur serveur.", error: e.message });
+        }
+    }
+
+    // GET /api/user/:id/posts - Récupérer les posts d'un utilisateur
+    async getPublicUserPosts(req: AuthRequest, res: Response) {
+        const { id } = req.params;
+        try {
+            const user = await this.prisma.user.findUnique({ where: { id } });
+            if (!user) return res.status(404).json({ message: "Utilisateur non trouvé." });
+            if (user.isPrivate && req.user?.userId !== id) return res.status(403).json({ message: "Profil privé." });
+
+            const posts = await this.prisma.post.findMany({
+                where: { authorId: id },
+                include: {
+                    author: { select: { id: true, name: true } },
+                    _count: { select: { likes: true, comments: true } }
+                },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            res.status(200).json(posts);
+        } catch (e: any) {
+            res.status(500).json({ message: "Erreur serveur.", error: e.message });
+        }
+    }
+
+    // GET /api/user/:id/vegetables - Récupérer les légumes d'un utilisateur
+    async getPublicUserVegetables(req: AuthRequest, res: Response) {
+        const { id } = req.params;
+        try {
+            const user = await this.prisma.user.findUnique({ where: { id } });
+            if (!user) return res.status(404).json({ message: "Utilisateur non trouvé." });
+            if (user.isPrivate && req.user?.userId !== id) return res.status(403).json({ message: "Profil privé." });
+
+            const vegetables = await this.prisma.gardenVegetable.findMany({
+                where: { userId: id },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            res.status(200).json(vegetables);
+        } catch (e: any) {
+            res.status(500).json({ message: "Erreur serveur.", error: e.message });
+        }
+    }
 }
