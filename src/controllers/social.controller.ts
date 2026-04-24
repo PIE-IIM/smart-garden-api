@@ -145,6 +145,36 @@ export class SocialController {
         }
     }
 
+    // DELETE /api/topic/:id - Supprimer un topic
+    async deleteTopic(req: AuthRequest, res: Response) {
+        const { id } = req.params;
+        const userId = req.user!.userId;
+
+        try {
+            const topic = await this.prisma.topic.findUnique({
+                where: { id }
+            });
+
+            if (!topic) {
+                res.status(404).json({ message: "Sujet non trouvé." });
+                return;
+            }
+
+            if (topic.authorId !== userId) {
+                res.status(403).json({ message: "Non autorisé." });
+                return;
+            }
+
+            await this.prisma.topic.delete({
+                where: { id }
+            });
+
+            res.status(200).json({ message: "Sujet supprimé." });
+        } catch (e: any) {
+            res.status(500).json({ message: "Erreur serveur.", error: e.message });
+        }
+    }
+
     // GET /api/tags - Récupérer tous les tags
     async getTags(req: AuthRequest, res: Response) {
         try {

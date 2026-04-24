@@ -127,9 +127,13 @@ app.get("/api/topic/:id", authenticateToken, (req, res) =>
   socialController.getTopic(req, res)
 );
 
-app.post("/api/topic/:id/comment", authenticateToken, (req, res) =>
-  socialController.addTopicComment(req, res)
-);
+app.post("/api/topic/:id/comment", authenticateToken, (req, res) => {
+  socialController.addTopicComment(req, res);
+});
+
+app.delete("/api/topic/:id", authenticateToken, (req, res) => {
+  socialController.deleteTopic(req, res);
+});
 
 app.get("/api/user/topics", authenticateToken, (req, res) =>
   socialController.getUserTopics(req, res)
