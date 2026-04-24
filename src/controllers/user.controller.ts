@@ -129,6 +129,7 @@ export class UserController {
 
     res.status(200).json({
       token: token,
+      userId: currentUser.id,
       userName: currentUser.name,
       email: currentUser.email,
       level: currentUser.level
