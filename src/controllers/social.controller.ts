@@ -175,6 +175,85 @@ export class SocialController {
         }
     }
 
+    // PUT /api/topic/:id - Modifier un topic
+    async updateTopic(req: AuthRequest, res: Response) {
+        const { id } = req.params;
+        const { title, content, tagIds } = req.body;
+        const userId = req.user!.userId;
+
+        try {
+            const topic = await this.prisma.topic.findUnique({ where: { id } });
+
+            if (!topic) {
+                res.status(404).json({ message: "Sujet non trouvé." });
+                return;
+            }
+
+            if (topic.authorId !== userId) {
+                res.status(403).json({ message: "Non autorisé." });
+                return;
+            }
+
+            // Mise à jour du topic + tags si fournis
+            const updated = await this.prisma.topic.update({
+                where: { id },
+                data: {
+                    ...(title && { title }),
+                    ...(content && { content }),
+                    ...(tagIds && {
+                        tags: {
+                            deleteMany: {},
+                            create: tagIds.map((tagId: string) => ({ tagId }))
+                        }
+                    })
+                },
+                include: {
+                    author: { select: { id: true, name: true } },
+                    tags: { include: { tag: true } },
+                    _count: { select: { comments: true } }
+                }
+            });
+
+            res.status(200).json(updated);
+        } catch (e: any) {
+            res.status(500).json({ message: "Erreur serveur.", error: e.message });
+        }
+    }
+
+    // PUT /api/post/:id - Modifier un post
+    async updatePost(req: AuthRequest, res: Response) {
+        const { id } = req.params;
+        const { content } = req.body;
+        const userId = req.user!.userId;
+
+        try {
+            const post = await this.prisma.post.findUnique({ where: { id } });
+
+            if (!post) {
+                res.status(404).json({ message: "Post non trouvé." });
+                return;
+            }
+
+            if (post.authorId !== userId) {
+                res.status(403).json({ message: "Non autorisé." });
+                return;
+            }
+
+            const updated = await this.prisma.post.update({
+                where: { id },
+                data: { ...(content && { content }) },
+                include: {
+                    author: { select: { id: true, name: true } },
+                    _count: { select: { likes: true, comments: true } }
+                }
+            });
+
+            res.status(200).json(updated);
+        } catch (e: any) {
+            res.status(500).json({ message: "Erreur serveur.", error: e.message });
+        }
+    }
+
     // GET /api/tags - Récupérer tous les tags
     async getTags(req: AuthRequest, res: Response) {
         try {
