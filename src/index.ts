@@ -209,6 +209,10 @@ app.delete("/api/tutorial/:id", authenticateToken, (req, res) =>
   socialController.deleteTutorial(req, res)
 );
 
+app.put("/api/tutorial/:id", authenticateToken, (req, res) => {
+  socialController.updateTutorial(req, res);
+});
+
 app.get("/api/user/tutorials", authenticateToken, (req, res) => {
   socialController.getUserTutorials(req, res);
 });
