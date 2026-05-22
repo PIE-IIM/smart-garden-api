@@ -372,15 +372,11 @@ export class UserController {
     }
 
     try {
-      console.log(
-        `Demande reset password pour : ${email}`
-      );
-
       const user = await this.prisma.user.findUnique({
         where: { email },
       });
 
-      // Toujours renvoyer la même réponse
+      // Toujours même réponse
       if (!user) {
         return res.status(200).json({
           message:
@@ -388,45 +384,40 @@ export class UserController {
         });
       }
 
-      // Vérification ENV
-      if (
-        !process.env.MAILJET_API_KEY ||
-        !process.env.MAILJET_SECRET_KEY ||
-        !process.env.MAIL_FROM
-      ) {
-        console.error(
-          "Variables Mailjet manquantes"
-        );
+      // Génération token sécurisé
+      const resetToken = crypto.randomBytes(32).toString("hex");
 
-        return res.status(500).json({
-          message:
-            "Configuration email manquante",
-        });
-      }
-
-      // Génération password temporaire
-      const tempPassword = crypto
-        .randomBytes(9)
-        .toString("base64url")
-        .slice(0, 12);
-
-      const hashedPassword = await bcrypt.hash(
-        tempPassword,
-        10
+      // Expiration 15 min
+      const expireAt = new Date(
+        Date.now() + 15 * 60 * 1000
       );
 
-      // Initialisation Mailjet
+      // Supprime anciens tokens
+      await this.prisma.passwordResetToken.deleteMany({
+        where: {
+          userId: user.id,
+        },
+      });
+
+      // Création token
+      await this.prisma.passwordResetToken.create({
+        data: {
+          token: resetToken,
+          userId: user.id,
+          expireAt,
+        },
+      });
+
+      // URL frontend
+      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+      // Mailjet
       const mailjet = Mailjet.apiConnect(
         process.env.MAILJET_API_KEY,
         process.env.MAILJET_SECRET_KEY
       );
 
-      console.log(
-        "Tentative d'envoi email Mailjet API..."
-      );
-
-      // Envoi email
-      const result = await mailjet
+      await mailjet
         .post("send", {
           version: "v3.1",
         })
@@ -445,56 +436,118 @@ export class UserController {
               ],
 
               Subject:
-                "Smart Garden - Réinitialisation mot de passe",
+                "Réinitialisation mot de passe",
 
-              TextPart: `Bonjour ${user.name || "Jardinier"
-                },
+              TextPart: `Bonjour ${user.name},
 
-  Vous avez demandé la réinitialisation de votre mot de passe.
+  Cliquez sur ce lien pour réinitialiser votre mot de passe :
 
-  Voici votre nouveau mot de passe temporaire :
+  ${resetUrl}
 
-  ${tempPassword}
+  Ce lien expire dans 15 minutes.`,
 
-  Nous vous recommandons de le modifier rapidement depuis votre profil.
+              HTMLPart: `
+                <h2>Réinitialisation mot de passe</h2>
 
-  L'équipe Smart Garden.`,
+                <p>Bonjour ${user.name},</p>
+
+                <p>
+                  Cliquez sur le bouton ci-dessous :
+                </p>
+
+                <a href="${resetUrl}"
+                  style="
+                    background:#22c55e;
+                    color:white;
+                    padding:12px 20px;
+                    text-decoration:none;
+                    border-radius:8px;
+                    display:inline-block;
+                  ">
+                  Réinitialiser mon mot de passe
+                </a>
+
+                <p>
+                  Ce lien expire dans 15 minutes.
+                </p>
+              `,
             },
           ],
         });
-
-      console.log(
-        "Email envoyé avec succès !"
-      );
-
-      console.log(result.body);
-
-      // IMPORTANT :
-      // update password uniquement APRÈS succès email
-      await this.prisma.user.update({
-        where: { email },
-        data: {
-          password: hashedPassword,
-        },
-      });
-
-      console.log(
-        "Mot de passe mis à jour."
-      );
 
       return res.status(200).json({
         message:
           "Si ce compte existe, un email a été envoyé.",
       });
     } catch (error: any) {
-      console.error(
-        "Erreur forgotPassword:",
-        error
-      );
+      console.error(error);
 
       return res.status(500).json({
+        message: "Erreur serveur",
+        error: error.message,
+      });
+    }
+  }
+
+  async resetPassword(req: Request, res: Response) {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        message: "Token et password requis",
+      });
+    }
+
+    try {
+      const resetToken =
+        await this.prisma.passwordResetToken.findUnique({
+          where: { token },
+        });
+
+      if (!resetToken) {
+        return res.status(400).json({
+          message: "Token invalide",
+        });
+      }
+
+      // Vérifie expiration
+      if (resetToken.expireAt < new Date()) {
+        return res.status(400).json({
+          message: "Token expiré",
+        });
+      }
+
+      const hashedPassword = await bcrypt.hash(
+        password,
+        10
+      );
+
+      // Update password
+      await this.prisma.user.update({
+        where: {
+          id: resetToken.userId,
+        },
+        data: {
+          password: hashedPassword,
+        },
+      });
+
+      // Supprime token
+      await this.prisma.passwordResetToken.delete({
+        where: {
+          id: resetToken.id,
+        },
+      });
+
+      return res.status(200).json({
         message:
-          "Impossible d'envoyer l'email",
+          "Mot de passe modifié avec succès",
+      });
+    } catch (error: any) {
+      console.error(error);
+
+      return res.status(500).json({
+        message: "Erreur serveur",
         error: error.message,
       });
     }
