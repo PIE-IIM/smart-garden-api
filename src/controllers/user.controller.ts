@@ -4,8 +4,9 @@ import { Login, Signup } from "../../models/models";
 import { Request, Response } from "express";
 import { Utils } from "../utils";
 import { AuthRequest } from "../middleware/auth.middleware";
-import nodemailer from "nodemailer";
 import crypto from "crypto";
+
+const Mailjet = require("node-mailjet");
 
 export class UserController {
   constructor(
