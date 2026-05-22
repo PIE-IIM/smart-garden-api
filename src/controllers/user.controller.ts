@@ -6,6 +6,7 @@ import { Request, Response } from "express";
 import { Utils } from "../utils";
 import { AuthRequest } from "../middleware/auth.middleware";
 import nodemailer from "nodemailer";
+import crypto from "crypto";
 
 export class UserController {
   constructor(private prisma: PrismaClient, private utils: Utils) { }
@@ -236,6 +237,7 @@ export class UserController {
   // POST /api/auth/forgot-password
   async forgotPassword(req: Request, res: Response) {
     const { email } = req.body;
+
     if (!email) {
       return res.status(400).json({ message: "Email requis" });
     }
@@ -244,49 +246,63 @@ export class UserController {
       console.log(`Demande de mot de passe oublié reçue pour l'email: ${email}`);
 
       const user = await this.prisma.user.findUnique({ where: { email } });
+
       if (!user) {
         console.log(`Utilisateur non trouvé pour l'email: ${email}`);
-        return res.status(200).json({ message: "Si ce compte existe, un email a été envoyé." });
+        return res
+          .status(200)
+          .json({ message: "Si ce compte existe, un email a été envoyé." });
       }
 
-      console.log(`Utilisateur trouvé, génération du mot de passe...`);
-      const tempPassword = Math.random().toString(36).slice(-8);
+      console.log(`Utilisateur trouvé, génération du mot de passe temporaire...`);
+
+      const tempPassword = crypto.randomBytes(9).toString("base64url").slice(0, 12);
       const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
       await this.prisma.user.update({
         where: { email },
         data: { password: hashedPassword },
       });
+
       console.log(`Mot de passe mis à jour en base de données.`);
 
-      console.log(`Configuration SMTP - User: ${process.env.SMTP_USER}`);
-      
-      // Essai avec le port 587 au lieu de 465 (parfois Railway bloque le 465)
       const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
+        host: "in-v3.mailjet.com",
         port: 587,
-        secure: false, // TLS via STARTTLS
+        secure: false,
         auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
+          user: process.env.MAILJET_API_KEY,
+          pass: process.env.MAILJET_SECRET_KEY,
         },
-        family: 4, // Force Node à utiliser IPv4 au lieu d'IPv6
+        family: 4,
       } as any);
 
       const mailOptions = {
-        from: `"Smart Garden" <${process.env.SMTP_USER || "noreply@smartgarden.com"}>`,
+        from: `"Smart Garden" <${process.env.MAIL_FROM || "noreply@smartgarden.com"}>`,
         to: email,
         subject: "Smart Garden - Votre nouveau mot de passe",
-        text: `Bonjour ${user.name || "Jardinier"},\n\nVous avez demandé la réinitialisation de votre mot de passe.\n\nVoici votre nouveau mot de passe temporaire : ${tempPassword}\n\nNous vous conseillons de le modifier rapidement depuis votre profil.\n\nL'équipe Smart Garden.`,
+        text: `Bonjour ${user.name || "Jardinier"},
+
+  Vous avez demandé la réinitialisation de votre mot de passe.
+
+  Voici votre nouveau mot de passe temporaire : ${tempPassword}
+
+  Nous vous conseillons de le modifier rapidement depuis votre profil.
+
+  L'équipe Smart Garden.`,
       };
 
-      if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.warn("\n=== AVERTISSEMENT SMTP NON CONFIGURÉ ===");
+      if (
+        !process.env.MAILJET_API_KEY ||
+        !process.env.MAILJET_SECRET_KEY ||
+        !process.env.MAIL_FROM
+      ) {
+        console.warn("\n=== AVERTISSEMENT MAILJET NON CONFIGURÉ ===");
         console.warn(`Email qui aurait été envoyé à: ${email}`);
         console.warn(`Nouveau mot de passe généré: ${tempPassword}`);
-        console.warn("========================================\n");
+        console.warn("===========================================\n");
       } else {
-        console.log(`Tentative d'envoi de l'email via nodemailer...`);
+        console.log(`Tentative d'envoi de l'email via Mailjet...`);
         try {
           const info = await transporter.sendMail(mailOptions);
           console.log(`Email envoyé avec succès ! Info:`, info.response);
@@ -297,10 +313,15 @@ export class UserController {
 
       console.log(`Fin du traitement de mot de passe oublié.`);
 
-      return res.status(200).json({ message: "Si ce compte existe, un email a été envoyé." });
+      return res
+        .status(200)
+        .json({ message: "Si ce compte existe, un email a été envoyé." });
     } catch (error: any) {
       console.error("Erreur forgotPassword:", error);
-      return res.status(500).json({ message: "Erreur serveur", error: error.message });
+      return res.status(500).json({
+        message: "Erreur serveur",
+        error: error.message,
+      });
     }
   }
 }
