@@ -241,10 +241,6 @@ app.post("/api/auth/forgot-password", (req, res) => {
   userController.forgotPassword(req, res);
 });
 
-app.post("/api/auth/reset-password", (req, res) => {
-  userController.resetPassword(req, res);
-});
-
 const PORT = process.env.PORT || 3000;
 app
   .listen(PORT, () => {
