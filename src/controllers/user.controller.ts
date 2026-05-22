@@ -380,7 +380,6 @@ export class UserController {
         where: { email },
       });
 
-      // Toujours renvoyer la même réponse
       if (!user) {
         return res.status(200).json({
           message:
@@ -404,7 +403,6 @@ export class UserController {
         });
       }
 
-      // Génération password temporaire
       const tempPassword = crypto
         .randomBytes(9)
         .toString("base64url")
@@ -415,7 +413,6 @@ export class UserController {
         10
       );
 
-      // Initialisation Mailjet
       const mailjet = Mailjet.apiConnect(
         process.env.MAILJET_API_KEY,
         process.env.MAILJET_SECRET_KEY
@@ -425,7 +422,6 @@ export class UserController {
         "Tentative d'envoi email Mailjet API..."
       );
 
-      // Envoi email
       const result = await mailjet
         .post("send", {
           version: "v3.1",
@@ -445,20 +441,152 @@ export class UserController {
               ],
 
               Subject:
-                "Smart Garden - Réinitialisation mot de passe",
+                "🌱 Smart Garden • Réinitialisation du mot de passe",
 
-              TextPart: `Bonjour ${user.name || "Jardinier"
-                },
+              TextPart: `
+  Bonjour ${user.name || "Jardinier"},
 
   Vous avez demandé la réinitialisation de votre mot de passe.
 
-  Voici votre nouveau mot de passe temporaire :
+  Votre mot de passe temporaire :
 
   ${tempPassword}
 
   Nous vous recommandons de le modifier rapidement depuis votre profil.
 
-  L'équipe Smart Garden.`,
+  L'équipe Smart Garden.
+  `,
+
+              HTMLPart: `
+  <div style="
+    background:#f4f7f5;
+    padding:40px 20px;
+    font-family:Arial,sans-serif;
+  ">
+    <div style="
+      max-width:600px;
+      margin:auto;
+      background:white;
+      border-radius:20px;
+      overflow:hidden;
+      box-shadow:0 10px 30px rgba(0,0,0,0.08);
+    ">
+
+      <!-- HEADER -->
+      <div style="
+        background:linear-gradient(135deg,#22c55e,#16a34a);
+        padding:40px 20px;
+        text-align:center;
+        color:white;
+      ">
+        <h1 style="
+          margin:0;
+          font-size:32px;
+        ">
+          🌱 Smart Garden
+        </h1>
+
+        <p style="
+          margin-top:10px;
+          font-size:16px;
+          opacity:0.9;
+        ">
+          Réinitialisation du mot de passe
+        </p>
+      </div>
+
+      <!-- CONTENT -->
+      <div style="
+        padding:40px 30px;
+        color:#1f2937;
+      ">
+        <h2 style="
+          margin-top:0;
+          font-size:24px;
+        ">
+          Bonjour ${user.name || "Jardinier"} 👋
+        </h2>
+
+        <p style="
+          font-size:16px;
+          line-height:1.7;
+          color:#4b5563;
+        ">
+          Vous avez demandé la réinitialisation de votre mot de passe.
+        </p>
+
+        <p style="
+          font-size:16px;
+          line-height:1.7;
+          color:#4b5563;
+        ">
+          Voici votre nouveau mot de passe temporaire :
+        </p>
+
+        <!-- PASSWORD BOX -->
+        <div style="
+          background:#f3f4f6;
+          border:2px dashed #22c55e;
+          border-radius:14px;
+          padding:20px;
+          text-align:center;
+          margin:30px 0;
+        ">
+          <span style="
+            font-size:28px;
+            font-weight:bold;
+            letter-spacing:3px;
+            color:#16a34a;
+          ">
+            ${tempPassword}
+          </span>
+        </div>
+
+        <p style="
+          font-size:15px;
+          line-height:1.7;
+          color:#6b7280;
+        ">
+          Pour votre sécurité, nous vous recommandons
+          de modifier ce mot de passe dès votre prochaine connexion.
+        </p>
+
+        <!-- BUTTON -->
+        <div style="
+          text-align:center;
+          margin-top:35px;
+        ">
+          <a href="smartgarden://login"
+            style="
+              background:#22c55e;
+              color:white;
+              padding:14px 28px;
+              border-radius:12px;
+              text-decoration:none;
+              font-weight:bold;
+              display:inline-block;
+              font-size:16px;
+            ">
+            Ouvrir Smart Garden
+          </a>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div style="
+        background:#f9fafb;
+        padding:25px;
+        text-align:center;
+        font-size:13px;
+        color:#9ca3af;
+        border-top:1px solid #e5e7eb;
+      ">
+        © ${new Date().getFullYear()} Smart Garden<br/>
+        Prenez soin de votre jardin 🌿
+      </div>
+    </div>
+  </div>
+  `,
             },
           ],
         });
@@ -469,8 +597,6 @@ export class UserController {
 
       console.log(result.body);
 
-      // IMPORTANT :
-      // update password uniquement APRÈS succès email
       await this.prisma.user.update({
         where: { email },
         data: {
