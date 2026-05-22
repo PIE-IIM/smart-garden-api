@@ -58,19 +58,17 @@ model Token {
 }
 
 model PasswordResetToken {
-  id        String    @id @default(cuid())
-  token     String    @unique
-  userId    String    @map("user_id")
-  expireAt  DateTime  @map("expires_at")
-  createdAt DateTime  @default(now()) @map("created_at")
-  usedAt    DateTime? @map("used_at")
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expireAt  DateTime
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
   @@index([userId])
   @@index([expireAt])
-  @@map("PasswordResetToken")
 }
 
 model GardenVegetable {
