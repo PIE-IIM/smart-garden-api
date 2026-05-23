@@ -18,6 +18,7 @@ model User {
   level           String?
   isPrivate       Boolean           @default(false)
   isPremium       Boolean           @default(false)
+  language        String            @default("fr")
   comments        Comment[]
   gardenData      GardenData?
   gardenVegetable GardenVegetable[]
