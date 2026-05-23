@@ -59,52 +59,60 @@ export class GardenController {
 
   //POST: /api/gardenspace
   async addGardenSpace(req: AuthRequest, res: Response) {
-    const { gardenSpaces } = req.body
+    const { gardenSpaces } = req.body as { gardenSpaces: any[] };
     const id = req.user!.userId;
 
     if (!id || !gardenSpaces) {
       res.status(400).json({ message: "Missing fields" });
-      return
+      return;
     }
 
-    const gardenSpacesDb = await this.prisma.gardenSpace.findMany({
-      where: { userId: req.user!.userId },
-    });
-
-
     try {
+      const gardenSpacesDb = await this.prisma.gardenSpace.findMany({
+        where: { userId: req.user!.userId },
+      });
+
+      const incomingIds = gardenSpaces.map((s) => s.id).filter((id) => !!id);
+      const toDelete = gardenSpacesDb.filter((dbSpace) => !incomingIds.includes(dbSpace.id));
+
       await Promise.all(
-        gardenSpaces.map((gardenSpace: GardenSpace) => {
+        toDelete.map((dbSpace) =>
+          this.prisma.gardenSpace.delete({
+            where: { id: dbSpace.id },
+          })
+        )
+      );
+
+      await Promise.all(
+        gardenSpaces.map((gardenSpace: any) => {
+          const resolvedName = gardenSpace.spaceName || gardenSpace.name || "Espace";
 
           if (gardenSpace.id) {
             return this.prisma.gardenSpace.update({
               where: { id: gardenSpace.id },
               data: {
                 userId: req.user!.userId,
-                spaceName: gardenSpace.name,
+                spaceName: resolvedName,
                 area: gardenSpace.area
               }
-            })
+            });
           } else {
             return this.prisma.gardenSpace.create({
               data: {
                 userId: req.user!.userId,
-                spaceName: gardenSpace.name,
+                spaceName: resolvedName,
                 area: gardenSpace.area
               }
-            })
+            });
           }
+        })
+      );
 
-
-        }
-        )
-      )
-
-      res.status(201).json({ message: 'ok' })
-    } catch {
-      res.status(500).json({ message: "Error." });
+      res.status(201).json({ message: 'ok' });
+    } catch (e: any) {
+      console.error("addGardenSpace failed:", e);
+      res.status(500).json({ message: "Error.", error: e.message });
     }
-
   }
 
   async gardenSpace(req: AuthRequest, res: Response) {
