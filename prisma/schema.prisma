@@ -13,9 +13,11 @@ model User {
   email           String            @unique
   password        String
   name            String?
+  publicName      String?
   createdAt       DateTime          @default(now())
   level           String?
   isPrivate       Boolean           @default(false)
+  isPremium       Boolean           @default(false)
   comments        Comment[]
   gardenData      GardenData?
   gardenVegetable GardenVegetable[]
@@ -253,6 +255,7 @@ model sensor_readings {
   voltage       Float?
   recorded_at   DateTime? @db.Timestamptz(6)
   created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime? @db.Timestamptz(6)
   sensors       sensors   @relation(fields: [sensor_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([sensor_id, created_at(sort: Desc)], map: "idx_readings_sensor_created")
@@ -260,13 +263,15 @@ model sensor_readings {
 }
 
 model sensors {
-  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name            String
+  id                      String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                    String
   type            String
   unit            String            @default("%")
   is_active       Boolean           @default(true)
+  data_collection_enabled Boolean?          @default(true)
   write_token     String?           @unique
   created_at      DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime?         @db.Timestamptz(6)
   sensor_readings sensor_readings[]
 }
 
