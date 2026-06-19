@@ -71,9 +71,12 @@ export class UserController {
         select: {
           id: true,
           name: true,
+          publicName: true,
           email: true,
           level: true,
           isPrivate: true,
+          isPremium: true,
+          language: true,
         },
       });
 
@@ -125,6 +128,7 @@ export class UserController {
           name,
           email,
           password: hashedPassword,
+          publicName: name,
         },
       });
 
@@ -200,6 +204,10 @@ export class UserController {
         userName: currentUser.name,
         email: currentUser.email,
         level: currentUser.level,
+        isPrivate: currentUser.isPrivate,
+        publicName: currentUser.publicName,
+        isPremium: currentUser.isPremium,
+        language: currentUser.language,
       });
     } catch (error: any) {
       console.error("Erreur login:", error);
@@ -222,6 +230,9 @@ export class UserController {
         level,
         isPrivate,
         password,
+        publicName,
+        isPremium,
+        language,
       } = req.body;
 
       const userId = req.user!.userId;
@@ -261,6 +272,18 @@ export class UserController {
               isPrivate !== undefined
                 ? isPrivate
                 : undefined,
+            publicName:
+              publicName !== undefined
+                ? publicName
+                : undefined,
+            isPremium:
+              isPremium !== undefined
+                ? isPremium
+                : undefined,
+            language:
+              language !== undefined
+                ? language
+                : undefined,
             ...(hashedPassword && {
               password: hashedPassword,
             }),
@@ -271,6 +294,9 @@ export class UserController {
             email: true,
             level: true,
             isPrivate: true,
+            publicName: true,
+            isPremium: true,
+            language: true,
           },
         });
 
