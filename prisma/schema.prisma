@@ -34,6 +34,7 @@ model User {
   topicViews      TopicView[]
   tutorialViews   TutorialView[]
   postViews       PostView[]
+  sensors         sensors[]
 }
 
 model Token {
@@ -250,13 +251,13 @@ model TutorialLike {
 
 model sensor_readings {
   id            BigInt    @id @default(autoincrement())
-  sensor_id     String    @db.Uuid
+  sensor_id     String    @unique @db.Uuid
   value_numeric Float
   raw_value     Int?
   voltage       Float?
   recorded_at   DateTime? @db.Timestamptz(6)
   created_at    DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime? @db.Timestamptz(6)
+  updated_at    DateTime  @updatedAt @db.Timestamptz(6)
   sensors       sensors   @relation(fields: [sensor_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([sensor_id, created_at(sort: Desc)], map: "idx_readings_sensor_created")
@@ -264,16 +265,22 @@ model sensor_readings {
 }
 
 model sensors {
-  id                      String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                    String
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String
   type            String
-  unit            String            @default("%")
-  is_active       Boolean           @default(true)
-  data_collection_enabled Boolean?          @default(true)
-  write_token     String?           @unique
-  created_at      DateTime          @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime?         @db.Timestamptz(6)
-  sensor_readings sensor_readings[]
+  unit            String           @default("%")
+  hardware_id     String?          @unique
+  userId          String?
+  is_active       Boolean          @default(true)
+  data_collection_enabled Boolean  @default(false)
+  write_token     String?          @unique
+  created_at      DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime         @updatedAt @db.Timestamptz(6)
+  user            User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sensor_readings sensor_readings?
+
+  @@index([userId])
+  @@index([userId, type])
 }
 
 enum TaskPriority {
