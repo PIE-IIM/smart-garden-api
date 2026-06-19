@@ -123,9 +123,9 @@ router.post(
       const sensorType =
         typeof type === "string" && type.trim().length > 0
           ? type.trim()
-          : "humidity";
+          : "temperature";
       const sensorUnit =
-        typeof unit === "string" && unit.trim().length > 0 ? unit.trim() : "%";
+        typeof unit === "string" && unit.trim().length > 0 ? unit.trim() : "C";
 
       const existingSensor = await prisma.sensors.findUnique({
         where: { hardware_id: hardwareId },
@@ -262,6 +262,47 @@ router.post(
       res.json(sensorPayload(updatedSensor));
     } catch (error) {
       console.error("Erreur arrêt collecte:", error);
+      res.status(500).json({ error: "Erreur serveur." });
+    }
+  }
+);
+
+router.delete(
+  "/sensors/:id",
+  authenticateToken,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const sensor = await prisma.sensors.findFirst({
+        where: {
+          id: req.params.id,
+          userId: req.user!.userId,
+          is_active: true,
+        },
+      });
+
+      if (!sensor) {
+        res.status(404).json({ error: "Capteur introuvable." });
+        return;
+      }
+
+      await prisma.$transaction(async (tx) => {
+        await tx.sensor_readings.deleteMany({
+          where: { sensor_id: sensor.id },
+        });
+
+        await tx.sensors.update({
+          where: { id: sensor.id },
+          data: {
+            userId: null,
+            write_token: null,
+            data_collection_enabled: false,
+          },
+        });
+      });
+
+      res.json({ status: "unpaired", sensor_id: sensor.id });
+    } catch (error) {
+      console.error("Erreur désappairage capteur:", error);
       res.status(500).json({ error: "Erreur serveur." });
     }
   }
@@ -445,31 +486,68 @@ router.post(
         }
       }
 
-      const reading = await prisma.sensor_readings.upsert({
-        where: { sensor_id: sensorId },
-        create: {
-          sensor_id: existingSensor.id,
-          value_numeric: numericValue,
-          raw_value: typeof raw_value === "number" ? raw_value : undefined,
-          voltage: typeof voltage === "number" ? voltage : undefined,
-          recorded_at: recordedAtDate,
-        },
-        update: {
-          value_numeric: numericValue,
-          raw_value: typeof raw_value === "number" ? raw_value : null,
-          voltage: typeof voltage === "number" ? voltage : null,
-          recorded_at: recordedAtDate ?? null,
-        },
+      const readingData = {
+        value_numeric: numericValue,
+        raw_value: typeof raw_value === "number" ? raw_value : null,
+        voltage: typeof voltage === "number" ? voltage : null,
+        recorded_at: recordedAtDate ?? null,
+      };
+
+      const reading = await prisma.$transaction(async (tx) => {
+        const existingReadings = await tx.sensor_readings.findMany({
+          where: { sensor_id: sensorId },
+          select: { id: true },
+          orderBy: [
+            { updated_at: "desc" },
+            { created_at: "desc" },
+            { id: "desc" },
+          ],
+        });
+
+        if (existingReadings.length === 0) {
+          return tx.sensor_readings.create({
+            data: {
+              sensor_id: existingSensor.id,
+              ...readingData,
+            },
+          });
+        }
+
+        const [latestReading, ...staleReadings] = existingReadings;
+
+        if (staleReadings.length > 0) {
+          await tx.sensor_readings.deleteMany({
+            where: {
+              id: {
+                in: staleReadings.map((staleReading) => staleReading.id),
+              },
+            },
+          });
+        }
+
+        return tx.sensor_readings.update({
+          where: { id: latestReading.id },
+          data: readingData,
+        });
       });
 
       res.status(200).json({
-        ...reading,
         id: reading.id.toString(),
+        sensor_id: reading.sensor_id,
+        value_numeric: reading.value_numeric,
+        raw_value: reading.raw_value,
+        voltage: reading.voltage,
+        recorded_at: reading.recorded_at,
+        created_at: reading.created_at,
+        updated_at: reading.updated_at,
       });
       return;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur ingestion capteur:", error);
-      res.status(500).json({ error: "Erreur serveur." });
+      res.status(500).json({
+        error: "Erreur serveur.",
+        detail: process.env.NODE_ENV === "production" ? undefined : error.message,
+      });
       return;
     }
   }
