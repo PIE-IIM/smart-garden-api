@@ -13,30 +13,75 @@ Ce contrat décrit le mode d'appairage sans Bluetooth. La Raspberry démarre en 
 
 ### `GET /device-info`
 
-Retourne les informations utilisées par l'app pour associer le capteur au compte connecté.
+Retourne les informations utilisées par l'app pour associer les capteurs au compte connecté. Le champ racine `hardware_id` reste présent pour compatibilité, mais l'app doit utiliser `sensors[]` quand il est disponible.
 
 ```json
 {
+  "device_hardware_id": "smart-garden-pico-001",
   "hardware_id": "smart-garden-temp-001",
   "name": "Capteur temperature sol",
   "type": "temperature",
   "unit": "C",
-  "fw_version": "1.0.0"
+  "fw_version": "1.0.0",
+  "sensors": [
+    {
+      "id": "tmp117",
+      "local_id": "tmp117",
+      "hardware_id": "smart-garden-tmp117-001",
+      "name": "TMP117 temperature sol",
+      "type": "temperature",
+      "unit": "C",
+      "bus": "i2c",
+      "address": "0x48",
+      "connected": true
+    },
+    {
+      "id": "soil-adc-gp26",
+      "local_id": "soil-adc-gp26",
+      "hardware_id": "smart-garden-soil-adc-gp26-001",
+      "name": "Capteur humidite sol",
+      "type": "humidity",
+      "unit": "%",
+      "bus": "adc",
+      "pin": 26,
+      "connected": true
+    }
+  ]
 }
 ```
 
 ### `POST /provision`
 
-Reçoit le Wi-Fi du jardin et les credentials retournés par l'API centrale après `POST /api/sensors/claim`.
+Reçoit le Wi-Fi du jardin et les credentials retournés par l'API centrale après un `POST /api/sensors/claim` par capteur détecté. Les champs racine `sensor_id` et `write_token` restent présents pour compatibilité, mais le firmware doit utiliser `sensors[]` quand il est disponible.
 
 ```json
 {
   "wifi_ssid": "Nom du Wi-Fi",
   "wifi_password": "mot-de-passe",
-  "sensor_id": "uuid-retourne-par-api",
-  "write_token": "token-retourne-par-api",
+  "sensor_id": "uuid-temp-retourne-par-api",
+  "write_token": "token-temp-retourne-par-api",
   "api_base_url": "https://smart-garden-api-production.up.railway.app",
-  "ingest_path": "/api/sensor-readings"
+  "ingest_path": "/api/sensor-readings",
+  "sensors": [
+    {
+      "local_id": "tmp117",
+      "hardware_id": "smart-garden-tmp117-001",
+      "name": "TMP117 temperature sol",
+      "type": "temperature",
+      "unit": "C",
+      "sensor_id": "uuid-temp-retourne-par-api",
+      "write_token": "token-temp-retourne-par-api"
+    },
+    {
+      "local_id": "soil-adc-gp26",
+      "hardware_id": "smart-garden-soil-adc-gp26-001",
+      "name": "Capteur humidite sol",
+      "type": "humidity",
+      "unit": "%",
+      "sensor_id": "uuid-humidity-retourne-par-api",
+      "write_token": "token-humidity-retourne-par-api"
+    }
+  ]
 }
 ```
 
@@ -59,7 +104,7 @@ POST /api/sensors/:id/start
 POST /api/sensors/:id/stop
 ```
 
-Le firmware poll ensuite le statut avec son token:
+Le firmware poll ensuite le statut avec le token de chaque capteur:
 
 ```text
 GET /api/sensors/:id/collection-status?write_token=...
@@ -76,12 +121,12 @@ Réponse:
 
 ## Ingestion API après provisioning
 
-Le firmware doit poster les mesures sur `api_base_url + ingest_path` uniquement quand `data_collection_enabled` vaut `true`.
+Le firmware doit poster les mesures sur `api_base_url + ingest_path` uniquement quand `data_collection_enabled` vaut `true` pour le capteur correspondant.
 
 ```json
 {
-  "sensor_id": "uuid-retourne-par-api",
-  "write_token": "token-retourne-par-api",
+  "sensor_id": "uuid-temp-retourne-par-api",
+  "write_token": "token-temp-retourne-par-api",
   "value_numeric": 22.4,
   "raw_value": 12345,
   "voltage": 2.91,
@@ -89,6 +134,6 @@ Le firmware doit poster les mesures sur `api_base_url + ingest_path` uniquement 
 }
 ```
 
-`value_numeric` peut être remplacé par `humidity` ou `temperature` pour compatibilité de payload, mais `sensor_id` et `write_token` sont obligatoires.
+`value_numeric` peut être remplacé par `humidity` ou `temperature` pour compatibilité de payload, mais `sensor_id` et `write_token` sont obligatoires. Pour un boitier avec plusieurs mesures, chaque lecture doit utiliser le couple `sensor_id` / `write_token` du capteur local correspondant.
 
 L'API centrale refuse l'ingestion si la collecte n'est pas activée pour ce capteur. Les mesures sont stockées avec la logique d'écrasement: une seule ligne `sensor_readings` par capteur.

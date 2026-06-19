@@ -166,6 +166,10 @@ router.post(
 
       res.status(200).json({
         sensor_id: sensor.id,
+        hardware_id: sensor.hardware_id,
+        name: sensor.name,
+        type: sensor.type,
+        unit: sensor.unit,
         write_token: writeToken,
         api_base_url: publicApiBaseUrl(req),
         ingest_path: "/api/sensor-readings",
