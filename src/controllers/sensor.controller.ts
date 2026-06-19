@@ -1,5 +1,10 @@
 import { PrismaClient } from "@prisma/client";
+import crypto from "crypto";
 import { Request, Response, Router } from "express";
+import {
+  AuthRequest,
+  authenticateToken,
+} from "../middleware/auth.middleware";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -40,9 +45,272 @@ router.post("/niveau_eau", (req: Request, res: Response) => {
   res.status(200).send("Données reçues avec succès");
 });
 
+function createWriteToken(): string {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+function publicApiBaseUrl(req: Request): string {
+  return (
+    process.env.API_BASE_URL ||
+    process.env.PUBLIC_API_BASE_URL ||
+    `${req.protocol}://${req.get("host")}`
+  );
+}
+
+function sensorReadingPayload(reading: any) {
+  return {
+    id: reading.id.toString(),
+    sensor_id: reading.sensor_id,
+    sensor_name: reading.sensors.name,
+    sensor_type: reading.sensors.type,
+    unit: reading.sensors.unit,
+    value_numeric: reading.value_numeric,
+    raw_value: reading.raw_value,
+    voltage: reading.voltage,
+    created_at: reading.created_at,
+    updated_at: reading.updated_at,
+    recorded_at: reading.recorded_at,
+  };
+}
+
+function sensorPayload(sensor: any) {
+  return {
+    id: sensor.id,
+    hardware_id: sensor.hardware_id,
+    name: sensor.name,
+    type: sensor.type,
+    unit: sensor.unit,
+    is_active: sensor.is_active,
+    data_collection_enabled: sensor.data_collection_enabled,
+    created_at: sensor.created_at,
+    updated_at: sensor.updated_at,
+    latest_reading: sensor.sensor_readings
+      ? {
+          id: sensor.sensor_readings.id.toString(),
+          sensor_id: sensor.sensor_readings.sensor_id,
+          value_numeric: sensor.sensor_readings.value_numeric,
+          raw_value: sensor.sensor_readings.raw_value,
+          voltage: sensor.sensor_readings.voltage,
+          created_at: sensor.sensor_readings.created_at,
+          updated_at: sensor.sensor_readings.updated_at,
+          recorded_at: sensor.sensor_readings.recorded_at,
+        }
+      : null,
+  };
+}
+
+router.post(
+  "/sensors/claim",
+  authenticateToken,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const { hardware_id, name, type, unit } = req.body;
+      const userId = req.user!.userId;
+
+      if (
+        typeof hardware_id !== "string" ||
+        hardware_id.trim().length === 0
+      ) {
+        res.status(400).json({ error: "hardware_id est requis." });
+        return;
+      }
+
+      const hardwareId = hardware_id.trim();
+      const sensorName =
+        typeof name === "string" && name.trim().length > 0
+          ? name.trim()
+          : "Capteur Smart Garden";
+      const sensorType =
+        typeof type === "string" && type.trim().length > 0
+          ? type.trim()
+          : "humidity";
+      const sensorUnit =
+        typeof unit === "string" && unit.trim().length > 0 ? unit.trim() : "%";
+
+      const existingSensor = await prisma.sensors.findUnique({
+        where: { hardware_id: hardwareId },
+      });
+
+      if (existingSensor?.userId && existingSensor.userId !== userId) {
+        res
+          .status(409)
+          .json({ error: "Ce capteur est déjà associé à un autre compte." });
+        return;
+      }
+
+      const writeToken = createWriteToken();
+      const sensor = existingSensor
+        ? await prisma.sensors.update({
+            where: { id: existingSensor.id },
+            data: {
+              name: sensorName,
+              type: sensorType,
+              unit: sensorUnit,
+              userId,
+              write_token: writeToken,
+              is_active: true,
+              data_collection_enabled: false,
+            },
+          })
+        : await prisma.sensors.create({
+            data: {
+              hardware_id: hardwareId,
+              name: sensorName,
+              type: sensorType,
+              unit: sensorUnit,
+              userId,
+              write_token: writeToken,
+              data_collection_enabled: false,
+            },
+          });
+
+      res.status(200).json({
+        sensor_id: sensor.id,
+        hardware_id: sensor.hardware_id,
+        name: sensor.name,
+        type: sensor.type,
+        unit: sensor.unit,
+        write_token: writeToken,
+        api_base_url: publicApiBaseUrl(req),
+        ingest_path: "/api/sensor-readings",
+      });
+    } catch (error) {
+      console.error("Erreur association capteur:", error);
+      res.status(500).json({ error: "Erreur serveur." });
+    }
+  }
+);
+
+router.get(
+  "/sensors",
+  authenticateToken,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const sensors = await prisma.sensors.findMany({
+        where: {
+          userId: req.user!.userId,
+          is_active: true,
+        },
+        include: { sensor_readings: true },
+        orderBy: { created_at: "asc" },
+      });
+
+      res.json(sensors.map(sensorPayload));
+    } catch (error) {
+      console.error("Erreur liste capteurs:", error);
+      res.status(500).json({ error: "Erreur serveur." });
+    }
+  }
+);
+
+router.post(
+  "/sensors/:id/start",
+  authenticateToken,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const sensor = await prisma.sensors.findFirst({
+        where: {
+          id: req.params.id,
+          userId: req.user!.userId,
+          is_active: true,
+        },
+      });
+
+      if (!sensor) {
+        res.status(404).json({ error: "Capteur introuvable." });
+        return;
+      }
+
+      const updatedSensor = await prisma.sensors.update({
+        where: { id: sensor.id },
+        data: { data_collection_enabled: true },
+        include: { sensor_readings: true },
+      });
+
+      res.json(sensorPayload(updatedSensor));
+    } catch (error) {
+      console.error("Erreur démarrage collecte:", error);
+      res.status(500).json({ error: "Erreur serveur." });
+    }
+  }
+);
+
+router.post(
+  "/sensors/:id/stop",
+  authenticateToken,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const sensor = await prisma.sensors.findFirst({
+        where: {
+          id: req.params.id,
+          userId: req.user!.userId,
+          is_active: true,
+        },
+      });
+
+      if (!sensor) {
+        res.status(404).json({ error: "Capteur introuvable." });
+        return;
+      }
+
+      const updatedSensor = await prisma.sensors.update({
+        where: { id: sensor.id },
+        data: { data_collection_enabled: false },
+        include: { sensor_readings: true },
+      });
+
+      res.json(sensorPayload(updatedSensor));
+    } catch (error) {
+      console.error("Erreur arrêt collecte:", error);
+      res.status(500).json({ error: "Erreur serveur." });
+    }
+  }
+);
+
+router.get(
+  "/sensors/:id/collection-status",
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const sensorId = req.params.id;
+      const writeToken =
+        typeof req.query.write_token === "string"
+          ? req.query.write_token
+          : req.headers["x-sensor-token"];
+
+      if (typeof writeToken !== "string" || writeToken.trim().length === 0) {
+        res.status(401).json({ error: "write_token est requis." });
+        return;
+      }
+
+      const sensor = await prisma.sensors.findUnique({
+        where: { id: sensorId },
+      });
+
+      if (!sensor) {
+        res.status(404).json({ error: "Capteur introuvable." });
+        return;
+      }
+
+      if (!sensor.write_token || sensor.write_token !== writeToken) {
+        res.status(403).json({ error: "write_token invalide." });
+        return;
+      }
+
+      res.json({
+        sensor_id: sensor.id,
+        data_collection_enabled: sensor.data_collection_enabled,
+      });
+    } catch (error) {
+      console.error("Erreur statut collecte:", error);
+      res.status(500).json({ error: "Erreur serveur." });
+    }
+  }
+);
+
 router.get(
   "/sensor-readings/latest",
-  async (req: Request, res: Response): Promise<void> => {
+  authenticateToken,
+  async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const sensorId =
         typeof req.query.sensor_id === "string" ? req.query.sensor_id : undefined;
@@ -50,23 +318,34 @@ router.get(
         typeof req.query.sensor_name === "string"
           ? req.query.sensor_name
           : undefined;
+      const sensorType =
+        typeof req.query.sensor_type === "string"
+          ? req.query.sensor_type
+          : undefined;
 
-      const where: {
-        sensor_id?: string;
-        sensors?: { is: { name: string } };
-      } = {};
+      const where: any = {
+        sensors: {
+          is: {
+            userId: req.user!.userId,
+            is_active: true,
+          },
+        },
+      };
 
       if (sensorId) {
         where.sensor_id = sensorId;
       }
 
       if (sensorName) {
-        where.sensors = { is: { name: sensorName } };
+        where.sensors.is.name = sensorName;
+      }
+      if (sensorType) {
+        where.sensors.is.type = sensorType;
       }
 
       const latestReading = await prisma.sensor_readings.findFirst({
         where,
-        orderBy: { created_at: "desc" },
+        orderBy: { updated_at: "desc" },
         include: { sensors: true },
       });
 
@@ -75,15 +354,7 @@ router.get(
         return;
       }
 
-      res.json({
-        id: latestReading.id.toString(),
-        sensor_id: latestReading.sensor_id,
-        sensor_name: latestReading.sensors.name,
-        value_numeric: latestReading.value_numeric,
-        raw_value: latestReading.raw_value,
-        created_at: latestReading.created_at,
-        recorded_at: latestReading.recorded_at,
-      });
+      res.json(sensorReadingPayload(latestReading));
     } catch (error) {
       console.error("Erreur lecture capteur:", error);
       res.status(500).json({ error: "Erreur serveur." });
@@ -94,60 +365,45 @@ router.get(
 router.post(
   "/sensor-readings",
   async (req: Request, res: Response): Promise<void> => {
-  try {
-    const {
-      sensor_id,
-      sensor_name,
-      humidity,
-      value_numeric,
-      raw_value,
-      voltage,
-      recorded_at,
-      type,
-      unit,
-    } = req.body;
+    try {
+      const {
+        sensor_id,
+        write_token,
+        humidity,
+        temperature,
+        value_numeric,
+        raw_value,
+        voltage,
+        recorded_at,
+      } = req.body;
 
-    const numericValue =
-      typeof value_numeric === "number"
-        ? value_numeric
-        : typeof humidity === "number"
-        ? humidity
-        : null;
+      const numericValue =
+        typeof value_numeric === "number"
+          ? value_numeric
+          : typeof humidity === "number"
+          ? humidity
+          : typeof temperature === "number"
+          ? temperature
+          : null;
 
-    if (numericValue === null) {
-      res
-        .status(400)
-        .json({ error: "value_numeric (ou humidity) est requis." });
-      return;
-    }
-
-    let sensorId = sensor_id as string | undefined;
-
-    if (!sensorId) {
-      if (!sensor_name || typeof sensor_name !== "string") {
-        res
-          .status(400)
-          .json({ error: "sensor_id ou sensor_name est requis." });
+      if (numericValue === null) {
+        res.status(400).json({
+          error: "value_numeric (ou humidity ou temperature) est requis.",
+        });
         return;
       }
 
-      const existingSensor = await prisma.sensors.findFirst({
-        where: { name: sensor_name },
-      });
-
-      if (existingSensor) {
-        sensorId = existingSensor.id;
-      } else {
-        const createdSensor = await prisma.sensors.create({
-          data: {
-            name: sensor_name,
-            type: typeof type === "string" ? type : "humidity",
-            unit: typeof unit === "string" ? unit : "%",
-          },
-        });
-        sensorId = createdSensor.id;
+      if (typeof sensor_id !== "string" || sensor_id.trim().length === 0) {
+        res.status(400).json({ error: "sensor_id est requis." });
+        return;
       }
-    } else {
+
+      if (typeof write_token !== "string" || write_token.trim().length === 0) {
+        res.status(401).json({ error: "write_token est requis." });
+        return;
+      }
+
+      const sensorId = sensor_id.trim();
       const existingSensor = await prisma.sensors.findUnique({
         where: { id: sensorId },
       });
@@ -156,37 +412,66 @@ router.post(
         res.status(404).json({ error: "Capteur introuvable." });
         return;
       }
-    }
 
-    let recordedAtDate: Date | undefined;
-    if (recorded_at) {
-      recordedAtDate = new Date(recorded_at);
-      if (Number.isNaN(recordedAtDate.getTime())) {
-        res.status(400).json({ error: "recorded_at invalide." });
+      if (!existingSensor.is_active) {
+        res.status(403).json({ error: "Capteur inactif." });
         return;
       }
+
+      if (!existingSensor.userId) {
+        res.status(403).json({ error: "Capteur non associé à un compte." });
+        return;
+      }
+
+      if (!existingSensor.data_collection_enabled) {
+        res.status(403).json({ error: "Collecte non activée pour ce capteur." });
+        return;
+      }
+
+      if (
+        !existingSensor.write_token ||
+        existingSensor.write_token !== write_token
+      ) {
+        res.status(403).json({ error: "write_token invalide." });
+        return;
+      }
+
+      let recordedAtDate: Date | undefined;
+      if (recorded_at) {
+        recordedAtDate = new Date(recorded_at);
+        if (Number.isNaN(recordedAtDate.getTime())) {
+          res.status(400).json({ error: "recorded_at invalide." });
+          return;
+        }
+      }
+
+      const reading = await prisma.sensor_readings.upsert({
+        where: { sensor_id: sensorId },
+        create: {
+          sensor_id: existingSensor.id,
+          value_numeric: numericValue,
+          raw_value: typeof raw_value === "number" ? raw_value : undefined,
+          voltage: typeof voltage === "number" ? voltage : undefined,
+          recorded_at: recordedAtDate,
+        },
+        update: {
+          value_numeric: numericValue,
+          raw_value: typeof raw_value === "number" ? raw_value : null,
+          voltage: typeof voltage === "number" ? voltage : null,
+          recorded_at: recordedAtDate ?? null,
+        },
+      });
+
+      res.status(200).json({
+        ...reading,
+        id: reading.id.toString(),
+      });
+      return;
+    } catch (error) {
+      console.error("Erreur ingestion capteur:", error);
+      res.status(500).json({ error: "Erreur serveur." });
+      return;
     }
-
-    const createdReading = await prisma.sensor_readings.create({
-      data: {
-        sensor_id: sensorId,
-        value_numeric: numericValue,
-        raw_value: typeof raw_value === "number" ? raw_value : null,
-        voltage: typeof voltage === "number" ? voltage : null,
-        recorded_at: recordedAtDate,
-      },
-    });
-
-    res.status(201).json({
-      ...createdReading,
-      id: createdReading.id.toString(),
-    });
-    return;
-  } catch (error) {
-    console.error("Erreur ingestion capteur:", error);
-    res.status(500).json({ error: "Erreur serveur." });
-    return;
-  }
   }
 );
 
