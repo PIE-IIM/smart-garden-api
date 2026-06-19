@@ -651,4 +651,85 @@ export class UserController {
       });
     }
   }
+
+  async deleteUser(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      await this.prisma.token.deleteMany({
+        where: { userId },
+      });
+      await this.prisma.user.delete({
+        where: { id: userId },
+      });
+      return res.status(200).json({ message: "Compte supprimé avec succès." });
+    } catch (error: any) {
+      console.error("Erreur deleteUser:", error);
+      return res.status(500).json({
+        message: "Erreur lors de la suppression du compte.",
+        error: error.message,
+      });
+    }
+  }
+
+  async deleteUserGarden(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      await this.prisma.gardenSpace.deleteMany({ where: { userId } });
+      await this.prisma.gardenData.deleteMany({ where: { userId } });
+      await this.prisma.gardenVegetable.deleteMany({ where: { userId } });
+      return res.status(200).json({ message: "Données du jardin supprimées." });
+    } catch (error: any) {
+      console.error("Erreur deleteUserGarden:", error);
+      return res.status(500).json({ message: "Erreur serveur", error: error.message });
+    }
+  }
+
+  async deleteUserTasks(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      await this.prisma.task.deleteMany({ where: { userId } });
+      return res.status(200).json({ message: "Tâches supprimées." });
+    } catch (error: any) {
+      console.error("Erreur deleteUserTasks:", error);
+      return res.status(500).json({ message: "Erreur serveur", error: error.message });
+    }
+  }
+
+  async deleteUserSensors(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      await this.prisma.sensors.deleteMany({ where: { userId } });
+      return res.status(200).json({ message: "Capteurs supprimés." });
+    } catch (error: any) {
+      console.error("Erreur deleteUserSensors:", error);
+      return res.status(500).json({ message: "Erreur serveur", error: error.message });
+    }
+  }
+
+  async deleteUserCommunity(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      await this.prisma.comment.deleteMany({ where: { authorId: userId } });
+      await this.prisma.topic.deleteMany({ where: { authorId: userId } });
+      await this.prisma.postComment.deleteMany({ where: { authorId: userId } });
+      await this.prisma.postLike.deleteMany({ where: { userId } });
+      await this.prisma.post.deleteMany({ where: { authorId: userId } });
+      return res.status(200).json({ message: "Données de la communauté supprimées." });
+    } catch (error: any) {
+      console.error("Erreur deleteUserCommunity:", error);
+      return res.status(500).json({ message: "Erreur serveur", error: error.message });
+    }
+  }
+
+  async deleteUserTutorials(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      await this.prisma.tutorialLike.deleteMany({ where: { userId } });
+      await this.prisma.tutorial.deleteMany({ where: { authorId: userId } });
+      return res.status(200).json({ message: "Tutoriels supprimés." });
+    } catch (error: any) {
+      console.error("Erreur deleteUserTutorials:", error);
+      return res.status(500).json({ message: "Erreur serveur", error: error.message });
+    }
+  }
 }

@@ -46,6 +46,30 @@ app.put("/api/user", authenticateToken, async (req, res) => {
   await userController.updateUser(req, res);
 });
 
+app.delete("/api/user", authenticateToken, async (req, res) => {
+  await userController.deleteUser(req, res);
+});
+
+app.delete("/api/user/garden/all", authenticateToken, async (req, res) => {
+  await userController.deleteUserGarden(req, res);
+});
+
+app.delete("/api/user/tasks/all", authenticateToken, async (req, res) => {
+  await userController.deleteUserTasks(req, res);
+});
+
+app.delete("/api/user/sensors/all", authenticateToken, async (req, res) => {
+  await userController.deleteUserSensors(req, res);
+});
+
+app.delete("/api/user/community/all", authenticateToken, async (req, res) => {
+  await userController.deleteUserCommunity(req, res);
+});
+
+app.delete("/api/user/tutorials/all", authenticateToken, async (req, res) => {
+  await userController.deleteUserTutorials(req, res);
+});
+
 app.get("/api/user/:id/profile", authenticateToken, async (req, res) => {
   await userController.getPublicProfile(req, res);
 });
