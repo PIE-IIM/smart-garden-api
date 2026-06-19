@@ -24,6 +24,7 @@ const gardenController = new GardenController(prisma, utils);
 const taskController = new TaskController(prisma);
 const socialController = new SocialController(prisma);
 
+app.set("trust proxy", 1);
 app.use(cors());
 app.use(express.json());
 
