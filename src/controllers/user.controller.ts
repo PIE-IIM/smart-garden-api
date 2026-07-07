@@ -138,6 +138,14 @@ export class UserController {
 
       return res.status(201).json({
         token,
+        userId: user.id,
+        userName: user.name,
+        email: user.email,
+        level: user.level,
+        isPrivate: user.isPrivate,
+        publicName: user.publicName,
+        isPremium: user.isPremium,
+        language: user.language,
       });
     } catch (error: any) {
       console.error("Erreur createUser:", error);
