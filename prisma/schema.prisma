@@ -299,3 +299,10 @@ enum TutorialCategory {
   DIY
   TECHNIQUES
 }
+
+model QrScan {
+  id        String   @id @default(uuid())
+  scannedAt DateTime @default(now())
+  userAgent String?
+  ipAddress String?
+}
