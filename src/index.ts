@@ -37,9 +37,7 @@ app.post("/api/login", async (req, res) => {
   await userController.login(req, res);
 });
 
-// ===== QR CODE REDIRECT & SCAN TRACKING =====
 app.get("/join-test", async (req, res) => {
-  // Enregistrement asynchrone pour une redirection ultra-rapide
   prisma.qrScan.create({
     data: {
       userAgent: req.headers["user-agent"] || null,
@@ -49,7 +47,7 @@ app.get("/join-test", async (req, res) => {
     console.error("Erreur de tracking du QR scan :", err);
   });
 
-  return res.redirect("https://play.google.com/apps/testing/com.smartgarden_iim");
+  return res.redirect("https://play.google.com/store/apps/details?id=com.smartgarden_iim");
 });
 
 // ===== USER =====
